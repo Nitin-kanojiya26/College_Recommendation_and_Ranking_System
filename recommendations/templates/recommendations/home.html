@@ -1,0 +1,79 @@
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Find Your Perfect College Match</h1>
+        <p class="hero-subtitle">Personalized recommendations based on your marks, preferences, and career goals</p>
+        
+        <div class="hero-stats">
+            <div class="stat-card">
+                <i class="fas fa-university"></i>
+                <h3>500+ Colleges</h3>
+                <p>Across India</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-user-graduate"></i>
+                <h3>10,000+ Students</h3>
+                <p>Successfully Placed</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-star"></i>
+                <h3>4.8/5 Rating</h3>
+                <p>Student Satisfaction</p>
+            </div>
+        </div>
+
+        <div class="hero-buttons">
+            <a href="/dashboard/" class="btn btn-primary">
+                <i class="fas fa-play-circle"></i> Get Started
+            </a>
+            <a href="/colleges/" class="btn btn-secondary">
+                <i class="fas fa-search"></i> Browse Colleges
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="features-section">
+    <h2 class="section-title">How It Works</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <h3>1. Create Profile</h3>
+            <p>Enter your marks, category, and preferences</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-filter"></i>
+            </div>
+            <h3>2. Set Filters</h3>
+            <p>Choose location, budget, and preferred courses</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>3. Get Scores</h3>
+            <p>Our algorithm calculates personalized scores</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h3>4. View Rankings</h3>
+            <p>See colleges ranked by your personal match score</p>
+        </div>
+    </div>
+</div>
+
+<div class="cta-section">
+    <h2>Ready to Find Your College?</h2>
+    <p>Join thousands of students who found their perfect college match</p>
+    <a href="/generate/" class="btn btn-large">
+        <i class="fas fa-magic"></i> Generate Recommendations Now
+    </a>
+</div>
+{% endblock %}

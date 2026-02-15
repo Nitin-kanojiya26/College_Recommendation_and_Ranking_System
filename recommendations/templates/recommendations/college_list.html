@@ -1,0 +1,161 @@
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="college-container">
+    <h1 class="page-title"><i class="fas fa-university"></i> Browse Colleges</h1>
+    
+    <!-- Filters -->
+    <div class="filters-section">
+        <div class="filter-group">
+            <input type="text" id="searchCollege" placeholder="Search colleges..." class="search-input">
+            <button class="btn btn-search"><i class="fas fa-search"></i></button>
+        </div>
+        
+        <div class="filter-group">
+            <select id="filterLocation" class="filter-select">
+                <option value="">All Locations</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Bangalore">Bangalore</option>
+            </select>
+            
+            <select id="filterCourse" class="filter-select">
+                <option value="">All Courses</option>
+                <option value="BTech">BTech</option>
+                <option value="BSc">BSc</option>
+                <option value="MBA">MBA</option>
+            </select>
+            
+            <select id="filterFees" class="filter-select">
+                <option value="">All Fee Ranges</option>
+                <option value="0-100000">Under ₹1 Lakh</option>
+                <option value="100000-200000">₹1-2 Lakhs</option>
+                <option value="200000-500000">₹2-5 Lakhs</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- College Grid -->
+    <div class="college-grid" id="collegeGrid">
+        <!-- Colleges will be loaded here dynamically -->
+        <div class="loading">Loading colleges...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sample college data
+const colleges = [
+    {
+        name: "ABC Institute of Technology",
+        location: "Mumbai",
+        courses: ["BTech", "BSc CS", "MCA"],
+        fees: "₹1,20,000",
+        rating: 4.3,
+        placement: "85%",
+        facilities: ["Hostel", "Library", "Sports"],
+        cutoff: "85%"
+    },
+    {
+        name: "Delhi Engineering College",
+        location: "Delhi",
+        courses: ["BTech", "MTech"],
+        fees: "₹1,50,000",
+        rating: 4.5,
+        placement: "90%",
+        facilities: ["Hostel", "Lab", "Cafeteria"],
+        cutoff: "88%"
+    },
+    {
+        name: "Bangalore Science College",
+        location: "Bangalore",
+        courses: ["BSc", "MSc"],
+        fees: "₹80,000",
+        rating: 4.0,
+        placement: "78%",
+        facilities: ["Library", "Lab"],
+        cutoff: "82%"
+    }
+];
+
+function renderColleges(colleges) {
+    const grid = document.getElementById('collegeGrid');
+    grid.innerHTML = '';
+    
+    colleges.forEach(college => {
+        const stars = '★'.repeat(Math.floor(college.rating)) + '☆'.repeat(5 - Math.floor(college.rating));
+        
+        const card = document.createElement('div');
+        card.className = 'college-card';
+        card.innerHTML = `
+            <div class="college-header">
+                <h3>${college.name}</h3>
+                <span class="college-location"><i class="fas fa-map-marker-alt"></i> ${college.location}</span>
+            </div>
+            
+            <div class="college-rating">
+                <div class="stars">${stars}</div>
+                <span class="rating-value">${college.rating}/5</span>
+            </div>
+            
+            <div class="college-details">
+                <p><i class="fas fa-book"></i> <strong>Courses:</strong> ${college.courses.join(', ')}</p>
+                <p><i class="fas fa-rupee-sign"></i> <strong>Fees:</strong> ${college.fees} per year</p>
+                <p><i class="fas fa-briefcase"></i> <strong>Placement:</strong> ${college.placement}</p>
+                <p><i class="fas fa-chart-line"></i> <strong>Cutoff:</strong> ${college.cutoff} (General)</p>
+                <p><i class="fas fa-building"></i> <strong>Facilities:</strong> ${college.facilities.join(', ')}</p>
+            </div>
+            
+            <div class="college-actions">
+                <button class="btn btn-view" onclick="viewCollege('${college.name}')">
+                    <i class="fas fa-eye"></i> View Details
+                </button>
+                <button class="btn btn-compare">
+                    <i class="fas fa-balance-scale"></i> Compare
+                </button>
+            </div>
+        `;
+        
+        grid.appendChild(card);
+    });
+}
+
+function viewCollege(name) {
+    alert(`Viewing details for ${name}`);
+}
+
+// Initial render
+renderColleges(colleges);
+
+// Filter functionality
+document.getElementById('searchCollege').addEventListener('input', filterColleges);
+document.getElementById('filterLocation').addEventListener('change', filterColleges);
+document.getElementById('filterCourse').addEventListener('change', filterColleges);
+document.getElementById('filterFees').addEventListener('change', filterColleges);
+
+function filterColleges() {
+    const search = document.getElementById('searchCollege').value.toLowerCase();
+    const location = document.getElementById('filterLocation').value;
+    const course = document.getElementById('filterCourse').value;
+    const fees = document.getElementById('filterFees').value;
+    
+    const filtered = colleges.filter(college => {
+        const matchesSearch = college.name.toLowerCase().includes(search) || 
+                            college.location.toLowerCase().includes(search);
+        const matchesLocation = !location || college.location === location;
+        const matchesCourse = !course || college.courses.includes(course);
+        const matchesFees = !fees || checkFeeRange(college.fees, fees);
+        
+        return matchesSearch && matchesLocation && matchesCourse && matchesFees;
+    });
+    
+    renderColleges(filtered);
+}
+
+function checkFeeRange(feesStr, range) {
+    // Simple check - in real app, parse fees properly
+    return true;
+}
+</script>
+{% endblock %}

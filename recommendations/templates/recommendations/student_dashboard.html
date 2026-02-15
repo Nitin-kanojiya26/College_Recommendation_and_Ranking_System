@@ -1,0 +1,168 @@
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="page-title"><i class="fas fa-user-graduate"></i> Student Dashboard</h1>
+    
+    <div class="dashboard-grid">
+        <!-- Profile Section -->
+        <div class="dashboard-card profile-card">
+            <h2><i class="fas fa-id-card"></i> Your Profile</h2>
+            <div class="profile-info">
+                <div class="info-item">
+                    <span class="label">Name:</span>
+                    <span class="value" id="studentName">Not Set</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Marks:</span>
+                    <span class="value" id="studentMarks">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Category:</span>
+                    <span class="value" id="studentCategory">General</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Budget:</span>
+                    <span class="value" id="studentBudget">₹0</span>
+                </div>
+<a href="{% url 'edit_profile' %}" class="btn btn-edit">
+    <i class="fas fa-edit"></i> Edit Profile
+</a>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-card actions-card">
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+            <div class="actions-grid">
+                <a href="/generate/" class="action-btn">
+                    <i class="fas fa-star"></i>
+                    <span>Get Recommendations</span>
+                </a>
+                <a href="/colleges/" class="action-btn">
+                    <i class="fas fa-search"></i>
+                    <span>Browse Colleges</span>
+                </a>
+                <button class="action-btn" onclick="savePreferences()">
+                    <i class="fas fa-save"></i>
+                    <span>Save Preferences</span>
+                </button>
+                <button class="action-btn" onclick="viewHistory()">
+                    <i class="fas fa-history"></i>
+                    <span>View History</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Recommendations -->
+        <div class="dashboard-card recommendations-card">
+            <h2><i class="fas fa-trophy"></i> Top Recommendations</h2>
+            <div class="recommendations-list" id="recommendationsList">
+                <p class="empty-state">No recommendations yet. Generate your first recommendation!</p>
+            </div>
+            <div class="card-footer">
+                <a href="/generate/" class="btn btn-view-all">
+                    <i class="fas fa-arrow-right"></i> View All Recommendations
+                </a>
+            </div>
+        </div>
+
+        <!-- Preferences Form -->
+        <div class="dashboard-card form-card">
+            <h2><i class="fas fa-sliders-h"></i> Set Your Preferences</h2>
+            <form id="preferencesForm" class="preferences-form">
+                <div class="form-group">
+                    <label><i class="fas fa-book"></i> Preferred Courses</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="courses" value="BTech"> BTech</label>
+                        <label><input type="checkbox" name="courses" value="BSc"> BSc</label>
+                        <label><input type="checkbox" name="courses" value="BA"> BA</label>
+                        <label><input type="checkbox" name="courses" value="BCom"> BCom</label>
+                        <label><input type="checkbox" name="courses" value="MBA"> MBA</label>
+                        <label><input type="checkbox" name="courses" value="MCA"> MCA</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Preferred Location</label>
+                    <select id="locationSelect" class="form-select">
+                        <option value="">Any Location</option>
+                        <option value="Delhi">Delhi</option>
+                        <option value="Mumbai">Mumbai</option>
+                        <option value="Bangalore">Bangalore</option>
+                        <option value="Chennai">Chennai</option>
+                        <option value="Kolkata">Kolkata</option>
+                        <option value="Hyderabad">Hyderabad</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-rupee-sign"></i> Maximum Budget (₹)</label>
+                    <input type="range" id="budgetSlider" min="50000" max="500000" step="50000" value="200000">
+                    <div class="slider-value">
+                        <span id="budgetValue">₹2,00,000</span> per year
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-star"></i> Minimum Star Rating</label>
+                    <div class="star-rating">
+                        {% for i in "12345" %}
+                        <span class="star" data-value="{{ i }}">★</span>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" id="minRating" value="3">
+                </div>
+
+                <button type="submit" class="btn btn-save">
+                    <i class="fas fa-check"></i> Apply Preferences
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Budget slider
+const budgetSlider = document.getElementById('budgetSlider');
+const budgetValue = document.getElementById('budgetValue');
+
+budgetSlider.addEventListener('input', function() {
+    const value = parseInt(this.value).toLocaleString('en-IN');
+    budgetValue.textContent = `₹${value}`;
+});
+
+// Star rating
+const stars = document.querySelectorAll('.star');
+stars.forEach(star => {
+    star.addEventListener('click', function() {
+        const value = this.getAttribute('data-value');
+        document.getElementById('minRating').value = value;
+        
+        stars.forEach(s => s.classList.remove('active'));
+        for(let i = 0; i < value; i++) {
+            stars[i].classList.add('active');
+        }
+    });
+});
+
+// Initialize 3 stars
+for(let i = 0; i < 3; i++) {
+    stars[i].classList.add('active');
+}
+
+function editProfile() {
+    alert('Edit profile feature coming soon!');
+}
+
+function savePreferences() {
+    alert('Preferences saved successfully!');
+}
+
+function viewHistory() {
+    alert('Viewing recommendation history...');
+}
+</script>
+{% endblock %}

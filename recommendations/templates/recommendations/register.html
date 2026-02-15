@@ -1,0 +1,105 @@
+<!-- templates/recommendations/register.html -->
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <form id="registerForm" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> First Name</label>
+                <input type="text" id="first_name" name="first_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Last Name</label>
+                <input type="text" id="last_name" name="last_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Confirm Password</label>
+                <input type="password" id="password2" name="password2" required>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> Register
+                </button>
+            </div>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="/login/">Login here</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        confirm_password: document.getElementById('password2').value,  // ← CHANGED THIS LINE
+        first_name: document.getElementById('first_name').value,
+        last_name: document.getElementById('last_name').value
+    };
+    
+    // Check if passwords match
+    if (formData.password !== formData.confirm_password) {  // ← CHANGED THIS LINE TOO
+        alert('Passwords do not match!');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/auth/register/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Registration successful! Please login.');
+            window.location.href = '/login/';
+        } else {
+            alert('Registration failed: ' + JSON.stringify(data));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+    }
+});
+</script>
+{% endblock %}
