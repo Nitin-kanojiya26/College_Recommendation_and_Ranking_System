@@ -55,22 +55,22 @@ def profile_page(request):
             'courses_list': []
         }
     
-    return render(request, 'recommendations/profile.html', context)
+    return render(request,'recommendations/profile.html',context)
 
 def home(request):
-    return render(request, 'recommendations/home.html')
+    return render(request,'recommendations/home.html')
 
 
 def student_dashboard(request):
-    return render(request, 'recommendations/student_dashboard.html')
+    return render(request,'recommendations/student_dashboard.html')
 
 
 def college_list(request):
-    return render(request, 'recommendations/college_list.html')
+    return render(request,'recommendations/college_list.html')
 
 
 def generate_recommendations_page(request):
-    return render(request, 'recommendations/generate_recommendations.html')
+    return render(request,'recommendations/generate_recommendations.html')
 
 
 class StudentViewSet(ModelViewSet):
@@ -92,7 +92,7 @@ class GenerateRecommendationsView(APIView):
             student = Student.objects.get(user=request.user)
         except Student.DoesNotExist:
             return Response(
-                {'error': 'Please complete your profile first'}, 
+                {'error':'Please complete your profile first'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -140,7 +140,7 @@ class GenerateRecommendationsView(APIView):
             })
         
         # Sort by score
-        results = sorted(results, key=lambda x: x['total_score'], reverse=True)
+        results = sorted(results,key=lambda x: x['total_score'], reverse=True)
         
         return Response({
             'student': student.user.username,
@@ -180,7 +180,7 @@ class FilterRecommendationsView(APIView):
 #--------------------------------------------------------------
 def login_page(request):
     """Render the login page"""
-    return render(request, 'recommendations/login.html')
+    return render(request,'recommendations/login.html')
 
 
 def login_user(request):
@@ -195,7 +195,7 @@ def login_user(request):
             login(request, user)
             return redirect('dashboard')
         else:
-            return render(request, 'recommendations/login.html', {
+            return render(request,'recommendations/login.html', {
                 'error': 'Invalid email/username or password'
             })
     
