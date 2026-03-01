@@ -132,7 +132,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-
+LOGIN_URL = 'login'              # where to send unauthenticated users
+LOGIN_REDIRECT_URL = 'dashboard' # where to go after successful login
+LOGOUT_REDIRECT_URL = 'home'     # where to go after logout (optional but recommended)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'recommendations/static'),
