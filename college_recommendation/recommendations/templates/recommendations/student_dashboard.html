@@ -1,0 +1,314 @@
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1 class="page-title"><i class="fas fa-user-graduate"></i> Student Dashboard</h1>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="dashboard-grid">
+        <!-- Profile Section -->
+        <div class="dashboard-card profile-card">
+            <h2><i class="fas fa-id-card"></i> Your Profile</h2>
+            <div class="profile-info">
+                <div class="info-item">
+                    <span class="label">Name:</span>
+                    <span class="value">{{ user.get_full_name|default:user.username }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Marks:</span>
+                    <span class="value">{{ student.marks|default:"0" }}%</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Category:</span>
+                    <span class="value">{{ student.category|default:"General" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Budget:</span>
+                    <span class="value">₹{{ student.budget|default:"0"|floatformat:0 }}</span>
+                </div>
+                <a href="{% url 'edit_profile' %}" class="btn btn-edit">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-card actions-card">
+            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+            <div class="actions-grid">
+                <a href="{% url 'generate_recommendations' %}" class="action-btn">
+                    <i class="fas fa-star"></i>
+                    <span>Get Recommendations</span>
+                </a>
+                <a href="{% url 'college_list' %}" class="action-btn">
+                    <i class="fas fa-search"></i>
+                    <span>Browse Colleges</span>
+                </a>
+                <a href="{% url 'edit_profile' %}" class="action-btn">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Edit Profile</span>
+                </a>
+<div id="preference-container" style="width: 300px; text-align: center; margin: 20px auto;">
+    <!-- Initial Button -->
+    <button id="preference-btn" type="button" class="action-btn" 
+            style="padding: 12px 24px; font-size: 1.1em;" 
+            onclick="showMessage()">
+        <i class="fas fa-save"></i>
+        <span>Preferences by Profile</span>
+    </button>
+
+    <!-- Message Box (hidden initially) -->
+    <div id="message-box" style="display: none; 
+                                margin-top: 20px; 
+                                padding: 20px; 
+                                border: 1px solid #ccc; 
+                                border-radius: 8px; 
+                                background-color: #f9f9f9; 
+                                color: #333; 
+                                font-size: 1em;">
+        Your preferences have been saved! <br>
+        If You want to see preference Click on recommendations.
+    </div>
+</div>
+
+<script>
+function showMessage() {
+    // Hide the button
+    document.getElementById('preference-btn').style.display = 'none';
+    // Show the message box
+    document.getElementById('message-box').style.display = 'block';
+    
+    // Wait 2 seconds, then submit the form
+    setTimeout(function() {
+        document.getElementById('preferencesForm').submit();
+    }, 5000); // 5000ms = 5 seconds
+}
+</script>
+            </div>
+        </div>
+
+        <!-- Recent Recommendations -->
+        <div class="dashboard-card recommendations-card">
+            <h2><i class="fas fa-trophy"></i> Quick Tips</h2>
+            <div class="recommendations-list">
+                <div class="tip-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <p>Complete your profile to get better recommendations</p>
+                </div>
+                <div class="tip-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>Set your preferred location to filter colleges</p>
+                </div>
+                <div class="tip-item">
+                    <i class="fas fa-rupee-sign"></i>
+                    <p>Update your budget to find affordable colleges</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'generate_recommendations' %}" class="btn btn-view-all">
+                    <i class="fas fa-arrow-right"></i> Get Recommendations Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Preferences Form -->
+        <div class="dashboard-card form-card">
+            <h2><i class="fas fa-sliders-h"></i> Set Your Preferences</h2>
+            <form id="preferencesForm" method="POST" action="{% url 'save_dashboard_preferences' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label><i class="fas fa-book"></i> Preferred Courses</label>
+                    {% if course in student.get_preferred_courses_list %}checked{% endif %}
+                    <div class="checkbox-group">
+                        {% for course in all_courses %}
+                        <label>
+                            <input type="checkbox" name="courses" value="{{ course }}" 
+                                {% if course in student.get_preferred_courses_list %}checked{% endif %}>
+                            {{ course }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Preferred Location</label>
+                    <select name="location" class="form-select">
+                        <option value="">Any Location</option>
+                        {% for location in locations %}
+                        <option value="{{ location }}" {% if student.preferred_location == location %}selected{% endif %}>
+                            {{ location }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-rupee-sign"></i> Maximum Budget (₹)</label>
+                    <input type="range" name="budget" id="budgetSlider" min="0" max="500000" step="10000" 
+                           value="{{ student.budget|default:'200000' }}">
+                    <div class="slider-value">
+                        <span id="budgetValue">₹{{ student.budget|default:'200000'|floatformat:0 }}</span> per year
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-star"></i> Minimum Star Rating</label>
+                    <div class="star-rating" id="starRating">
+                        {% for i in "12345"|make_list %}
+                        <span class="star {% if forloop.counter <= student.min_rating|default:3 %}active{% endif %}" 
+                              data-value="{{ forloop.counter }}">★</span>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="min_rating" id="minRating" value="{{ student.min_rating|default:'3' }}">
+                </div>
+
+                <button type="submit" class="btn btn-save">
+                    <i class="fas fa-check"></i> Save
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.tip-item i {
+    color: #4CAF50;
+    font-size: 1.2rem;
+}
+
+.tip-item p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+.star-rating {
+    display: flex;
+    gap: 5px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.star {
+    color: #ccc;
+    transition: color 0.2s;
+}
+
+.star.active {
+    color: gold;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const stars = document.querySelectorAll('#starRating .star');
+    const minRating = document.getElementById('minRating');
+
+    function setRating(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+
+    // Initialize from hidden input
+    setRating(parseInt(minRating.value));
+
+    stars.forEach((star, index) => {
+
+        // Click = permanently set rating
+        star.addEventListener('click', function () {
+            const rating = index + 1;
+            minRating.value = rating;
+            setRating(rating);
+        });
+
+        // Hover effect
+        star.addEventListener('mouseover', function () {
+            setRating(index + 1);
+        });
+
+        // When leaving the star area, restore selected rating
+        star.addEventListener('mouseout', function () {
+            setRating(parseInt(minRating.value));
+        });
+
+    });
+
+});
+</script>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Make the "Get Recommendations" button use profile data
+document.querySelector('a[href="{% url 'generate_recommendations' %}"]').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // Create a form with profile data
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url 'generate_recommendations' %}';
+    
+    // Add CSRF token
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = 'csrfmiddlewaretoken';
+    csrf.value = '{{ csrf_token }}';
+    form.appendChild(csrf);
+    
+    // Add profile data as hidden fields
+    const fields = {
+        'studentName': '{{ user.get_full_name|default:user.username }}',
+        'studentEmail': '{{ user.email }}',
+        'marks': '{{ student.marks|default:"85" }}',
+        'category': '{{ student.category|default:"General" }}',
+        'preferred_course': '',  // You can set a default or leave empty
+        'preferred_location': '{{ student.preferred_location|default:"" }}',
+        'budget': '{{ student.budget|default:"200000" }}',
+        'min_rating': '{{ student.min_rating|default:"3" }}'
+    };
+    
+    for (let key in fields) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = fields[key];
+        form.appendChild(input);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+});
+</script>
+{% endblock %}

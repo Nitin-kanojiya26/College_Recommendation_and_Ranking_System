@@ -1,0 +1,166 @@
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="recommendations-container">
+    <h1 class="page-title"><i class="fas fa-trophy"></i> Your College Recommendations</h1>
+    
+    <div class="steps-indicator">
+        <div class="step completed"><span>✓</span> Enter Details</div>
+        <div class="step completed"><span>✓</span> Set Preferences</div>
+        <div class="step active"><span>3</span> View Results</div>
+    </div>
+    
+    <!-- Student Summary -->
+    <div class="student-summary-card">
+        <h3><i class="fas fa-user-graduate"></i> Your Profile Summary</h3>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="label">Name:</span>
+                <span class="value">{{ student.name }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Marks:</span>
+                <span class="value">{{ student.marks }}%</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Category:</span>
+                <span class="value">{{ student.category }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Preferred Course:</span>
+                <span class="value">{{ student.preferred_course }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Location:</span>
+                <span class="value">{{ student.preferred_location|default:"Any" }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Budget:</span>
+                <span class="value">₹{{ student.budget|floatformat:0 }}</span>
+            </div>
+        </div>
+        <a href="{% url 'generate_recommendations' %}" class="btn btn-edit-preferences">
+            <i class="fas fa-edit"></i> Edit Preferences
+        </a>
+    </div>
+    
+    <!-- Results Section -->
+    <div class="results-section">
+        <h2><i class="fas fa-star"></i> Top Matches for You</h2>
+        
+        {% if recommendations %}
+        <div class="results-grid">
+            {% for item in recommendations %}
+            <div class="result-card {% if forloop.first %}top-result{% endif %}">
+                {% if forloop.first %}
+                <div class="best-match-badge">
+                    <i class="fas fa-crown"></i> Best Match
+                </div>
+                {% endif %}
+                
+                <div class="result-rank">#{{ forloop.counter }}</div>
+                
+                <div class="result-header">
+                    <h3>{{ item.college.name }}</h3>
+                    <span class="result-location">
+                        <i class="fas fa-map-marker-alt"></i> {{ item.college.location }}
+                    </span>
+                </div>
+                
+                <div class="result-score">
+                    <div class="score-circle">
+                        <span class="score-value">{{ item.score }}</span>
+                        <span class="score-label">/10</span>
+                    </div>
+                    <div class="stars-display">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= item.college.review_score|floatformat:0 %}
+                            <i class="fas fa-star" style="color: #FFD700;"></i>
+                            {% elif forloop.counter <= item.college.review_score|add:0.5 %}
+                            <i class="fas fa-star-half-alt" style="color: #FFD700;"></i>
+                            {% else %}
+                            <i class="far fa-star" style="color: #FFD700;"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="rating-value">{{ item.college.review_score }}/5</span>
+                    </div>
+                </div>
+                
+                <div class="result-details">
+                    <div class="detail-item">
+                        <i class="fas fa-rupee-sign"></i>
+                        <strong>Fees:</strong> ₹{{ item.college.annual_fees|floatformat:0 }}/year
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-briefcase"></i>
+                        <strong>Placement:</strong> {{ item.college.placement_rate }}%
+                    </div>
+                    {% if item.college.avg_package %}
+                    <div class="detail-item">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <strong>Avg Package:</strong> ₹{{ item.college.avg_package }} LPA
+                    </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Match:</strong> 
+                        {% if item.score >= 8 %}
+                        <span class="tag excellent">Excellent</span>
+                        {% elif item.score >= 6 %}
+                        <span class="tag good">Good</span>
+                        {% elif item.score >= 4 %}
+                        <span class="tag average">Average</span>
+                        {% else %}
+                        <span class="tag low">Low</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="result-courses">
+    <strong>Courses:</strong>
+    {% for course in item.college.get_courses_list|slice:":3" %}
+    <span class="course-tag">{{ course }}</span>
+    {% endfor %}
+    {% if item.college.get_courses_list|length > 3 %}
+    <span class="course-tag more">+{{ item.college.get_courses_list|length|add:"-3" }}</span>
+    {% endif %}
+</div>
+                <div class="result-actions">
+                    <a href="{% url 'college_detail' item.college.id %}" class="btn btn-details">
+                        <i class="fas fa-info-circle"></i> View Details
+                    </a>
+                    <button class="btn btn-save" onclick="saveCollege({{ item.college.id }})">
+                        <i class="fas fa-bookmark"></i> Save
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results">
+            <i class="fas fa-search fa-4x"></i>
+            <h3>No colleges match your criteria</h3>
+            <p>Try adjusting your preferences or filters</p>
+            <a href="{% url 'generate_recommendations' %}" class="btn btn-primary">
+                <i class="fas fa-sliders-h"></i> Adjust Preferences
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Hidden form for saving colleges -->
+<form id="saveCollegeForm" method="POST" action="{% url 'save_college' %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="college_id" id="saveCollegeId">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function saveCollege(collegeId) {
+    document.getElementById('saveCollegeId').value = collegeId;
+    document.getElementById('saveCollegeForm').submit();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="recommendations-container">
+    <h1 class="page-title"><i class="fas fa-star"></i> Generate College Recommendations</h1>
+    
+    <div class="steps-indicator">
+        <div class="step active"><span>1</span> Enter Details</div>
+        <div class="step"><span>2</span> Set Preferences</div>
+        <div class="step"><span>3</span> View Results</div>
+    </div>
+    
+    <div class="form-section">
+        <h2><i class="fas fa-user-edit"></i> Student Information</h2>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="{% url 'generate_recommendations' %}" class="student-form">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" name="studentName" value="{{ user.get_full_name|default:user.username }}" required placeholder="Enter your name">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" name="studentEmail" value="{{ user.email }}" required placeholder="student@example.com">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-chart-bar"></i> Marks Obtained (%)</label>
+                    <input type="number" name="marks" min="0" max="100" step="0.01" required value="85">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Category</label>
+                    <select name="category" required>
+                        <option value="General">General</option>
+                        <option value="OBC">OBC</option>
+                        <option value="SC">SC</option>
+                        <option value="ST">ST</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-book"></i> Preferred Course</label>
+                    <select name="preferred_course" required>
+                        <option value="">Select Course</option>
+                        {% for course in all_courses %}
+                        <option value="{{ course }}">{{ course }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-map-marker-alt"></i> Preferred Location</label>
+                    <select name="preferred_location">
+                        <option value="">Any Location</option>
+                        {% for location in locations %}
+                        <option value="{{ location }}">{{ location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fas fa-rupee-sign"></i> Annual Budget (₹)</label>
+                    <input type="number" name="budget" min="0" step="10000" value="200000">
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-star"></i> Minimum Rating</label>
+                    <select name="min_rating">
+                        <option value="0">Any Rating</option>
+                        <option value="3">3+ Stars</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="4.5">4.5+ Stars</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="reset" class="btn btn-reset">
+                    <i class="fas fa-redo"></i> Reset
+                </button>
+                <button type="submit" class="btn btn-generate">
+                    <i class="fas fa-magic"></i> Generate Recommendations
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -25,9 +25,15 @@
         </div>
 
         <div class="hero-buttons">
-            <a href="/dashboard/" class="btn btn-primary">
-                <i class="fas fa-play-circle"></i> Get Started
-            </a>
+  {% if user.is_authenticated %}
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+        <i class="fas fa-play-circle"></i> Get Started
+    </a>
+{% else %}
+    <a href="{% url 'login' %}" class="btn btn-primary">
+        <i class="fas fa-play-circle"></i> Get Started
+    </a>
+{% endif %}
             <a href="/colleges/" class="btn btn-secondary">
                 <i class="fas fa-search"></i> Browse Colleges
             </a>

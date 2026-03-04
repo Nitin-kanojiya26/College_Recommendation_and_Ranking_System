@@ -1,0 +1,85 @@
+{% extends 'recommendations/base.html' %}
+
+{% block content %}
+<div class="college-detail-container">
+    <div class="college-detail-header">
+        <h1>{{ college.name }}</h1>
+        <p class="location"><i class="fas fa-map-marker-alt"></i> {{ college.location }}</p>
+    </div>
+    
+    <div class="college-detail-grid">
+        <div class="detail-card">
+            <h3><i class="fas fa-info-circle"></i> Basic Information</h3>
+            <table class="detail-table">
+                <tr>
+                    <th>Annual Fees:</th>
+                    <td>₹{{ college.annual_fees|floatformat:0 }}</td>
+                </tr>
+                <tr>
+                    <th>Placement Rate:</th>
+                    <td>{{ college.placement_rate }}%</td>
+                </tr>
+                {% if college.avg_package %}
+                <tr>
+                    <th>Average Package:</th>
+                    <td>₹{{ college.avg_package }} LPA</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Review Score:</th>
+                    <td>{{ college.review_score }}/5</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="detail-card">
+            <h3><i class="fas fa-book"></i> Courses Offered</h3>
+           <div class="courses-list">
+    {% for course in college.get_courses_list %}
+    <span class="course-badge">{{ course }}</span>
+    {% endfor %}
+</div>
+        </div>
+        
+        <div class="detail-card">
+            <h3><i class="fas fa-building"></i> Facilities</h3>
+            <div class="facilities-list">
+                {% for facility in college.facilities %}
+                <span class="facility-badge">{{ facility }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="detail-card">
+            <h3><i class="fas fa-chart-line"></i> Category-wise Cutoffs</h3>
+            <table class="cutoff-table">
+                <tr>
+                    <th>General</th>
+                    <td>{{ college.cutoff_general }}%</td>
+                </tr>
+                <tr>
+                    <th>OBC</th>
+                    <td>{{ college.cutoff_obc }}%</td>
+                </tr>
+                <tr>
+                    <th>SC</th>
+                    <td>{{ college.cutoff_sc }}%</td>
+                </tr>
+                <tr>
+                    <th>ST</th>
+                    <td>{{ college.cutoff_st }}%</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    <div class="detail-actions">
+        <a href="{% url 'college_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Colleges
+        </a>
+        <a href="{% url 'generate_recommendations' %}" class="btn btn-primary">
+            <i class="fas fa-star"></i> Get Recommendations
+        </a>
+    </div>
+</div>
+{% endblock %}
