@@ -1,128 +1,230 @@
 {% extends 'recommendations/base.html' %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<style>
+.edit-shell { max-width: 1100px; }
+
+.edit-hero {
+    background: linear-gradient(130deg, #14395b, #2f5d8a);
+    color: #fff;
+    border-radius: 18px;
+    padding: 1.3rem;
+    box-shadow: 0 16px 34px rgba(20, 57, 91, 0.28);
+}
+
+.edit-card {
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid rgba(18, 54, 90, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 26px rgba(16, 36, 54, 0.12);
+}
+
+.section-title {
+    color: #20466f;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.form-label-strong {
+    font-weight: 700;
+    color: #274a72;
+    font-size: 0.88rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+    border-color: #d5e1ef;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #6d95bd;
+    box-shadow: 0 0 0 0.2rem rgba(47, 93, 138, 0.15);
+}
+
+.form-hint {
+    color: #607286;
+    font-size: 0.78rem;
+    margin-top: 0.3rem;
+}
+
+.info-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.info-chip {
+    border: 1px solid #dae7f7;
+    border-radius: 10px;
+    background: #f5f9ff;
+    padding: 0.6rem 0.7rem;
+}
+
+.info-chip .k {
+    display: block;
+    color: #627488;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.info-chip .v {
+    color: #1f446a;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.edit-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.5s ease;
+}
+
+.edit-reveal.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">
-                        <i class="fas fa-user-edit"></i> Edit Profile
-                    </h3>
-                </div>
-                <div class="card-body">
-                    {% if messages %}
-                    <div class="alert-container">
-                        {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    
-                    {% if error %}
-                    <div class="alert alert-danger">
-                        {{ error }}
-                    </div>
-                    {% endif %}
-                    
-                    <form method="POST" action="{% url 'edit_profile' %}">
-                        {% csrf_token %}
-                        
-                        <h5 class="mb-3"><i class="fas fa-user"></i> Personal Information</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="first_name" class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="first_name" name="first_name" 
-                                           value="{{ user.first_name }}" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="last_name" class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name" 
-                                           value="{{ user.last_name }}" required>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   value="{{ user.email }}" required>
-                        </div>
-                        
-                        <hr class="my-4">
-                        
-                        <h5 class="mb-3"><i class="fas fa-graduation-cap"></i> Academic Information</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="marks" class="form-label">Marks (%)</label>
-                                    <input type="number" class="form-control" id="marks" name="marks" 
-                                           value="{{ student_profile.marks }}" min="0" max="100" step="0.01" required>
-                                    <small class="form-text text-muted">Enter your percentage score</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="category" class="form-label">Category</label>
-                                    <select class="form-control" id="category" name="category" required>
-                                        <option value="General" {% if student_profile.category == "General" %}selected{% endif %}>General</option>
-                                        <option value="OBC" {% if student_profile.category == "OBC" %}selected{% endif %}>OBC</option>
-                                        <option value="SC" {% if student_profile.category == "SC" %}selected{% endif %}>SC</option>
-                                        <option value="ST" {% if student_profile.category == "ST" %}selected{% endif %}>ST</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="preferred_courses" class="form-label">Preferred Courses (Comma separated)</label>
-                            <input type="text" class="form-control" id="preferred_courses" name="preferred_courses" 
-                                   value="{{ student_profile.preferred_courses|join:', ' }}">
-                            <small class="form-text text-muted">e.g., Computer Science, Mechanical Engineering, Medicine</small>
-                        </div>
-                        
-                        <hr class="my-4">
-                        
-                        <h5 class="mb-3"><i class="fas fa-map-marker-alt"></i> Preferences</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="preferred_location" class="form-label">Preferred Location</label>
-                                    <input type="text" class="form-control" id="preferred_location" name="preferred_location" 
-                                           value="{{ student_profile.preferred_location }}">
-                                    <small class="form-text text-muted">e.g., Delhi, Mumbai, Bangalore</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="budget" class="form-label">Annual Budget (₹)</label>
-                                    <input type="number" class="form-control" id="budget" name="budget" 
-                                           value="{{ student_profile.budget }}" min="0" step="1000">
-                                    <small class="form-text text-muted">Maximum annual fees you can afford</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group mt-4">
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <a href="{% url 'dashboard' %}" class="btn btn-secondary me-md-2">
-                                    <i class="fas fa-times"></i> Cancel
-                                </a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Update Profile
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+<div class="container edit-shell py-4">
+    <div class="edit-hero mb-4 edit-reveal">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h1 class="h3 mb-1"><i class="fas fa-user-edit me-2"></i>Edit Profile</h1>
+                <p class="mb-0 text-white-50">Keep your personal, academic, and preference data up to date for better recommendations.</p>
             </div>
+            <a href="{% url 'dashboard' %}" class="btn btn-light"><i class="fas fa-arrow-left me-1"></i> Back to Dashboard</a>
         </div>
     </div>
+
+    {% if messages %}
+    <div class="mb-3 edit-reveal">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger edit-reveal">{{ error }}</div>
+    {% endif %}
+
+    <div class="edit-card p-4 p-md-5 edit-reveal">
+        <div class="info-strip">
+            <div class="info-chip">
+                <span class="k">Account</span>
+                <span class="v">{{ user.username }}</span>
+            </div>
+            <div class="info-chip">
+                <span class="k">Current Category</span>
+                <span class="v">{{ student_profile.category|default:"General" }}</span>
+            </div>
+            <div class="info-chip">
+                <span class="k">Current Marks</span>
+                <span class="v">{{ student_profile.marks|default:"0" }}%</span>
+            </div>
+            <div class="info-chip">
+                <span class="k">Current Budget</span>
+                <span class="v">&#8377;{{ student_profile.budget|default:"0"|floatformat:0 }}</span>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'edit_profile' %}" class="row g-3">
+            {% csrf_token %}
+
+            <div class="col-12">
+                <h2 class="section-title"><i class="fas fa-user me-2"></i>Personal Information</h2>
+            </div>
+
+            <div class="col-md-6">
+                <label for="first_name" class="form-label form-label-strong">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label for="last_name" class="form-label form-label-strong">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+            </div>
+
+            <div class="col-12">
+                <label for="email" class="form-label form-label-strong">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+
+            <div class="col-12 mt-2"><hr></div>
+
+            <div class="col-12">
+                <h2 class="section-title"><i class="fas fa-graduation-cap me-2"></i>Academic Information</h2>
+            </div>
+
+            <div class="col-md-6">
+                <label for="marks" class="form-label form-label-strong">Marks (%)</label>
+                <input type="number" class="form-control" id="marks" name="marks" value="{{ student_profile.marks }}" min="0" max="100" step="0.01" required>
+                <div class="form-hint">Enter your latest percentage score.</div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="category" class="form-label form-label-strong">Category</label>
+                <select class="form-select" id="category" name="category" required>
+                    <option value="General" {% if student_profile.category == "General" %}selected{% endif %}>General</option>
+                    <option value="OBC" {% if student_profile.category == "OBC" %}selected{% endif %}>OBC</option>
+                    <option value="SC" {% if student_profile.category == "SC" %}selected{% endif %}>SC</option>
+                    <option value="ST" {% if student_profile.category == "ST" %}selected{% endif %}>ST</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label for="preferred_courses" class="form-label form-label-strong">Preferred Courses</label>
+                <input type="text" class="form-control" id="preferred_courses" name="preferred_courses" value="{{ student_profile.preferred_courses }}">
+                <div class="form-hint">Use comma-separated values (e.g., BTech, BSc, MBA).</div>
+            </div>
+
+            <div class="col-12 mt-2"><hr></div>
+
+            <div class="col-12">
+                <h2 class="section-title"><i class="fas fa-map-marker-alt me-2"></i>Preference Settings</h2>
+            </div>
+
+            <div class="col-md-6">
+                <label for="preferred_location" class="form-label form-label-strong">Preferred Location</label>
+                <input type="text" class="form-control" id="preferred_location" name="preferred_location" value="{{ student_profile.preferred_location }}">
+                <div class="form-hint">Example: Delhi, Mumbai, Bangalore.</div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="budget" class="form-label form-label-strong">Annual Budget</label>
+                <input type="number" class="form-control" id="budget" name="budget" value="{{ student_profile.budget }}" min="0" step="1000">
+                <div class="form-hint">Maximum annual fees you can afford.</div>
+            </div>
+
+            <div class="col-12 d-flex gap-2 flex-wrap mt-3">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Update Profile
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.edit-reveal').forEach(function (el, index) {
+        setTimeout(function () {
+            el.classList.add('show');
+        }, 70 * index);
+    });
+});
+</script>
 {% endblock %}

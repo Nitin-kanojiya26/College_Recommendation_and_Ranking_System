@@ -1,106 +1,342 @@
 {% extends 'recommendations/base.html' %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<style>
+.gen-shell { max-width: 1080px; }
+
+.gen-hero {
+    background: linear-gradient(130deg, #143a5b, #2f5d8a);
+    color: #fff;
+    border-radius: 18px;
+    padding: 1.35rem;
+    box-shadow: 0 16px 34px rgba(20, 58, 91, 0.28);
+}
+
+.gen-card {
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid rgba(18, 54, 90, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(16, 36, 54, 0.12);
+}
+
+.step-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.step-pill {
+    padding: 0.38rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 1px solid #d7e4f4;
+    color: #2b4b6d;
+    background: #f3f7fd;
+}
+
+.step-pill.active {
+    background: #2f5d8a;
+    color: #fff;
+    border-color: #2f5d8a;
+}
+
+.stat-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.34rem 0.68rem;
+    border-radius: 999px;
+    background: #eef5ff;
+    color: #264a70;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 1px solid #d7e5f6;
+}
+
+.form-label-strong {
+    font-weight: 700;
+    color: #20466f;
+    font-size: 0.9rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #6d95bd;
+    box-shadow: 0 0 0 0.2rem rgba(47, 93, 138, 0.16);
+}
+
+.budget-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: #21476e;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.rating-pick {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.rate-option {
+    border: none;
+    background: transparent;
+    color: #c4cddd;
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.rate-option:hover {
+    color: #f2b62a;
+    transform: scale(1.05);
+}
+
+.rate-option.active {
+    color: #f4b400;
+}
+
+.rate-any {
+    margin-left: 0.4rem;
+    border: 1px solid #d8e4f4;
+    background: #f4f8ff;
+    color: #35587f;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.rate-any.active {
+    background: #2f5d8a;
+    color: #fff;
+    border-color: #2f5d8a;
+}
+
+.gen-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.5s ease;
+}
+
+.gen-reveal.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="recommendations-container">
-    <h1 class="page-title"><i class="fas fa-star"></i> Generate College Recommendations</h1>
-    
-    <div class="steps-indicator">
-        <div class="step active"><span>1</span> Enter Details</div>
-        <div class="step"><span>2</span> Set Preferences</div>
-        <div class="step"><span>3</span> View Results</div>
-    </div>
-    
-    <div class="form-section">
-        <h2><i class="fas fa-user-edit"></i> Student Information</h2>
-        
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        
-        <form method="POST" action="{% url 'generate_recommendations' %}" class="student-form">
-            {% csrf_token %}
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> Full Name</label>
-                    <input type="text" name="studentName" value="{{ user.get_full_name|default:user.username }}" required placeholder="Enter your name">
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" name="studentEmail" value="{{ user.email }}" required placeholder="student@example.com">
-                </div>
+<div class="container gen-shell py-4">
+    <div class="gen-hero mb-4 gen-reveal">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+                <h1 class="h3 mb-1"><i class="fas fa-magic me-2"></i>Generate College Recommendations</h1>
+                <p class="mb-0 text-white-50">Fill your details and get the best matching colleges instantly.</p>
             </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label><i class="fas fa-chart-bar"></i> Marks Obtained (%)</label>
-                    <input type="number" name="marks" min="0" max="100" step="0.01" required value="85">
+            <a href="{% url 'college_list' %}" class="btn btn-light"><i class="fas fa-university me-1"></i> Browse Colleges</a>
+        </div>
+    </div>
+
+    <div class="step-row mb-3 gen-reveal">
+        <span class="step-pill active">1. Enter Details</span>
+        <span class="step-pill">2. Preferences</span>
+        <span class="step-pill">3. Results</span>
+    </div>
+
+    <div class="stat-chip-row mb-3 gen-reveal">
+        <span class="stat-chip"><i class="fas fa-layer-group"></i> {{ all_courses|length }} Courses Available</span>
+        <span class="stat-chip"><i class="fas fa-map"></i> {{ locations|length }} Locations</span>
+        <span class="stat-chip"><i class="fas fa-user-check"></i> Logged in as {{ user.username }}</span>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3 gen-reveal">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="gen-card card gen-reveal">
+        <div class="card-body p-4 p-md-5">
+            <h2 class="h4 mb-4" style="color:#1f4368;"><i class="fas fa-user-edit me-2"></i>Student Information</h2>
+
+            <form method="POST" action="{% url 'generate_recommendations' %}" class="row g-3">
+                {% csrf_token %}
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-user me-1"></i> Full Name</label>
+                    <input type="text" name="studentName" value="{{ user.get_full_name|default:user.username }}" required class="form-control" placeholder="Enter your name">
                 </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-tag"></i> Category</label>
-                    <select name="category" required>
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-envelope me-1"></i> Email</label>
+                    <input type="email" name="studentEmail" value="{{ user.email }}" required class="form-control" placeholder="student@example.com">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-chart-bar me-1"></i> Marks Obtained (%)</label>
+                    <input type="number" name="marks" min="0" max="100" step="0.01" required value="85" class="form-control">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-tag me-1"></i> Category</label>
+                    <select name="category" class="form-select" required>
                         <option value="General">General</option>
                         <option value="OBC">OBC</option>
                         <option value="SC">SC</option>
                         <option value="ST">ST</option>
                     </select>
                 </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label><i class="fas fa-book"></i> Preferred Course</label>
-                    <select name="preferred_course" required>
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-book me-1"></i> Preferred Course</label>
+                    <select name="preferred_course" class="form-select" required>
                         <option value="">Select Course</option>
                         {% for course in all_courses %}
                         <option value="{{ course }}">{{ course }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt"></i> Preferred Location</label>
-                    <select name="preferred_location">
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-map-marker-alt me-1"></i> Preferred Location</label>
+                    <select name="preferred_location" class="form-select">
                         <option value="">Any Location</option>
                         {% for location in locations %}
                         <option value="{{ location }}">{{ location }}</option>
                         {% endfor %}
                     </select>
                 </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label><i class="fas fa-rupee-sign"></i> Annual Budget (₹)</label>
-                    <input type="number" name="budget" min="0" step="10000" value="200000">
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-rupee-sign me-1"></i> Annual Budget</label>
+                    <input type="range" name="budget" min="0" max="500000" step="10000" value="200000" class="form-range" id="budgetSlider">
+                    <div class="budget-live"><i class="fas fa-wallet"></i> <span id="budgetValue">&#8377;200,000</span></div>
                 </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-star"></i> Minimum Rating</label>
-                    <select name="min_rating">
-                        <option value="0">Any Rating</option>
-                        <option value="3">3+ Stars</option>
-                        <option value="4">4+ Stars</option>
-                        <option value="4.5">4.5+ Stars</option>
-                    </select>
+
+                <div class="col-md-6">
+                    <label class="form-label form-label-strong"><i class="fas fa-star me-1"></i> Minimum Rating</label>
+                    <input type="hidden" name="min_rating" id="minRating" value="3">
+                    <div class="rating-pick" id="minRatingPicker">
+                        {% for i in "12345"|make_list %}
+                        <button type="button" class="rate-option" data-value="{{ forloop.counter }}" aria-label="Minimum {{ forloop.counter }} stars">&#9733;</button>
+                        {% endfor %}
+                        <button type="button" class="rate-any" data-value="0">Any</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="form-actions">
-                <button type="reset" class="btn btn-reset">
-                    <i class="fas fa-redo"></i> Reset
-                </button>
-                <button type="submit" class="btn btn-generate">
-                    <i class="fas fa-magic"></i> Generate Recommendations
-                </button>
-            </div>
-        </form>
+
+                <div class="col-12 d-flex gap-2 flex-wrap mt-2">
+                    <button type="reset" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo me-1"></i> Reset
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-magic me-1"></i> Generate Recommendations
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const budgetSlider = document.getElementById('budgetSlider');
+    const budgetValue = document.getElementById('budgetValue');
+    const minRating = document.getElementById('minRating');
+    const starButtons = document.querySelectorAll('#minRatingPicker .rate-option');
+    const anyButton = document.querySelector('#minRatingPicker .rate-any');
+    const form = document.querySelector('form.student-form, .gen-card form');
+
+    function formatINR(value) {
+        return Number(value).toLocaleString('en-IN');
+    }
+
+    function setBudget(value) {
+        if (budgetValue) {
+            budgetValue.innerHTML = '&#8377;' + formatINR(value);
+        }
+    }
+
+    function setMinRating(value) {
+        const v = parseInt(value, 10);
+        if (!minRating) return;
+        minRating.value = v;
+
+        starButtons.forEach((btn) => {
+            const b = parseInt(btn.dataset.value, 10);
+            if (v > 0 && b <= v) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        if (anyButton) {
+            anyButton.classList.toggle('active', v === 0);
+        }
+    }
+
+    if (budgetSlider) {
+        setBudget(budgetSlider.value);
+        budgetSlider.addEventListener('input', function () {
+            setBudget(this.value);
+        });
+    }
+
+    starButtons.forEach((btn) => {
+        btn.addEventListener('click', function () {
+            setMinRating(this.dataset.value);
+        });
+    });
+
+    if (anyButton) {
+        anyButton.addEventListener('click', function () {
+            setMinRating(0);
+        });
+    }
+
+    setMinRating(minRating ? minRating.value : 3);
+
+    if (form) {
+        form.addEventListener('reset', function () {
+            setTimeout(function () {
+                if (budgetSlider) setBudget(budgetSlider.value);
+                setMinRating(3);
+            }, 0);
+        });
+    }
+
+    document.querySelectorAll('.gen-reveal').forEach(function (el, index) {
+        setTimeout(function () {
+            el.classList.add('show');
+        }, 70 * index);
+    });
+});
+</script>
 {% endblock %}

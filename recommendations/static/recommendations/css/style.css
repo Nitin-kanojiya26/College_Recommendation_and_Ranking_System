@@ -14,8 +14,9 @@ body {
 
 /* Navigation */
 .navbar {
-    background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 6px 18px rgba(14, 35, 53, 0.1);
+    backdrop-filter: blur(6px);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -24,37 +25,70 @@ body {
 .nav-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem 2rem;
+    padding: 0.95rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .nav-logo {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #4a6fa5;
+    color: #21476e;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
+    margin-right: 0.6rem;
+    padding: 0.18rem 0.3rem 0.18rem 0.12rem;
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+
+.nav-logo:hover {
+    transform: translateY(-1px);
+    color: #1a3c5f;
+    text-decoration: none;
+    background: rgba(47, 93, 138, 0.08);
+}
+
+.logo-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #163f65, #2f5d8a);
+    color: #fff;
+    font-size: 1rem;
+    box-shadow: 0 8px 18px rgba(22, 63, 101, 0.25);
+}
+
+.logo-text-main {
+    font-size: 1.22rem;
+    font-weight: 800;
+    letter-spacing: 0.65px;
 }
 
 .nav-menu {
     display: flex;
-    gap: 1.5rem;
+    gap: 1.85rem;
 }
 
 .nav-link {
     color: #666;
     text-decoration: none;
     font-weight: 500;
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.95rem;
     border-radius: 5px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.58rem;
+}
+
+.nav-link i {
+    width: 1rem;
+    text-align: center;
 }
 
 .nav-link:hover {
@@ -210,8 +244,70 @@ body {
 .college-header {
     display: flex;
     justify-content: space-between;
-    align-items: start;
-    margin-bottom: 1rem;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.college-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #4f6279;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.college-location-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: linear-gradient(135deg, #1e3a5f, #2f5d8a);
+    color: #fff;
+    text-decoration: none !important;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 6px 14px rgba(30, 58, 95, 0.24);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+}
+
+.college-location-chip:hover {
+    transform: translateY(-2px) scale(1.02);
+    background: linear-gradient(135deg, #17304f, #274f78);
+    box-shadow: 0 10px 18px rgba(23, 48, 79, 0.32);
+    text-decoration: none !important;
+}
+
+.college-location-chip:visited,
+.college-location-chip:focus,
+.college-location-chip:active {
+    text-decoration: none !important;
+    color: #fff;
+}
+
+.chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9dd6ff;
+    box-shadow: 0 0 0 rgba(157, 214, 255, 0.65);
+    animation: chipPulse 1.6s infinite;
+}
+
+@keyframes chipPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(157, 214, 255, 0.65);
+    }
+    70% {
+        box-shadow: 0 0 0 7px rgba(157, 214, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(157, 214, 255, 0);
+    }
 }
 
 .college-rating {
@@ -222,8 +318,30 @@ body {
 }
 
 .stars {
-    color: #ffd700;
+    position: relative;
+    display: inline-block;
     font-size: 1.2rem;
+    line-height: 1;
+    letter-spacing: 1px;
+    width: max-content;
+}
+
+.stars-base {
+    display: block;
+    color: #d5d7df;
+}
+
+.stars-top {
+    display: block;
+    color: #ffd700;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--rating, 0%);
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 /* Results */
@@ -388,7 +506,7 @@ body {
     .nav-menu {
         display: none;
     }
-    
+
     .hero-title {
         font-size: 2rem;
     }
@@ -562,3 +680,93 @@ body {
 .btn-edit, .btn-save {
     margin-top: 1rem;
 }
+
+.btn-clear {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.btn-clear:hover {
+    background-color: #5a6268;
+}
+
+.college-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.rating-count {
+    margin: 0.35rem 0 0.7rem;
+    color: #5b6472;
+    font-size: 0.88rem;
+}
+
+.rate-college-form {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+}
+
+.rate-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2f3b4a;
+}
+
+.rate-stars-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.rate-star-btn {
+    border: none;
+    background: transparent;
+    color: #c9cfdb;
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.rate-star-btn:hover {
+    color: #f0b429;
+    transform: scale(1.08);
+}
+
+.rate-star-btn.active {
+    color: #f4b400;
+}
+
+.btn-rate-save {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    background: #2f5d8a;
+    color: #fff;
+}
+
+.btn-rate-save:hover {
+    background: #23496c;
+}
+
+.rating-login-note {
+    margin-bottom: 0.9rem;
+    font-size: 0.86rem;
+}
+
+@media (max-width: 768px) {
+    .college-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+

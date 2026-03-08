@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -113,6 +114,23 @@ class Student(models.Model):
         if not self.email and self.user:
             self.email = self.user.email
         super().save(*args, **kwargs)
+
+class CollegeRating(models.Model):
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name='ratings')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='college_ratings')
+    rating = models.PositiveSmallIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['college', 'user']
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.user.username} rated {self.college.name}: {self.rating}/5"
 
 class Ranking(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='rankings')

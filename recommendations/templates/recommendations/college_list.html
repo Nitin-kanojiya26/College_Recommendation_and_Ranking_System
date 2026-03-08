@@ -7,33 +7,42 @@
     <!-- Filters -->
     <div class="filters-section">
         <form method="GET" action="{% url 'college_list' %}" class="filter-form">
+            
+            <!-- Search -->
             <div class="filter-group">
                 <input type="text" name="search" placeholder="Search colleges..." 
                        value="{{ request.GET.search }}" class="search-input">
-                <button type="submit" class="btn btn-search"><i class="fas fa-search"></i></button>
+                <button type="submit" class="btn btn-search">
+                    <i class="fas fa-search"></i>
+                </button>
             </div>
             
             <div class="filter-group">
-            <select name="location" class="filter-select">
-    <option value="">All Locations</option>
-    {% for location in locations %}
-    <option value="{{ location }}" {% if request.GET.location == location %}selected{% endif %}>
-        {{ location }}
-    </option>
-    {% endfor %}
-</select>
-                
-                <select name="course" class="filter-select">
-                    <option value="">All Courses</option>
-                    {% for course in all_courses %}
-                    <option value="{{ course.id }}" {% if request.GET.course == course.id|stringformat:"i" %}selected{% endif %}>
-                        {{ course.name }}
+
+                <!-- Location Filter -->
+                <select name="location" class="filter-select">
+                    <option value="">All Locations</option>
+                    {% for location in locations %}
+                    <option value="{{ location }}"
+                        {% if request.GET.location == location %}selected{% endif %}>
+                        {{ location }}
                     </option>
                     {% endfor %}
                 </select>
                 
+                <!-- Course Filter (FIXED) -->
+                <select name="course" class="filter-select">
+                    <option value="">All Courses</option>
+                    {% for course in all_courses %}
+                    <option value="{{ course }}"
+                        {% if request.GET.course == course %}selected{% endif %}>
+                        {{ course }}
+                    </option>
+                    {% endfor %}
+                </select>
+                
+                <!-- Fees Filter -->
                 <select name="fees" class="filter-select">
-                    
                     <option value="">All Fee Ranges</option>
                     <option value="0-100000" {% if request.GET.fees == "0-100000" %}selected{% endif %}>
                         Under ₹1 Lakh
@@ -56,13 +65,16 @@
     <div class="college-grid">
         {% for college in colleges %}
         <div class="college-card">
+            
             <div class="college-header">
                 <h3>{{ college.name }}</h3>
                 <span class="college-location">
-                    <i class="fas fa-map-marker-alt"></i> {{ college.location.name }}
+                    <i class="fas fa-map-marker-alt"></i> 
+                    {{ college.location }}   <!-- FIXED -->
                 </span>
             </div>
             
+            <!-- Rating -->
             <div class="college-rating">
                 <div class="stars">
                     {% for i in "12345"|make_list %}
@@ -73,38 +85,63 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-                <span class="rating-value">{{ college.review_score }}/5</span>
+                <span class="rating-value">
+                    {{ college.review_score }}/5
+                </span>
             </div>
             
+            <!-- Details -->
             <div class="college-details">
-                <p><i class="fas fa-book"></i> <strong>Courses:</strong> 
-                    {% for course in college.courses_offered.all %}
-                        {{ course.name }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
+                
+                <!-- Courses (FIXED) -->
+                <p>
+                    <i class="fas fa-book"></i> 
+                    <strong>Courses:</strong> 
+                    {{ college.get_courses_list|join:", " }}
                 </p>
-                <p><i class="fas fa-rupee-sign"></i> <strong>Fees:</strong> 
+                
+                <!-- Fees -->
+                <p>
+                    <i class="fas fa-rupee-sign"></i> 
+                    <strong>Fees:</strong> 
                     ₹{{ college.annual_fees|floatformat:0 }} per year
                 </p>
-                <p><i class="fas fa-briefcase"></i> <strong>Placement:</strong> 
+                
+                <!-- Placement -->
+                <p>
+                    <i class="fas fa-briefcase"></i> 
+                    <strong>Placement:</strong> 
                     {{ college.placement_rate }}%
                 </p>
-                <p><i class="fas fa-building"></i> <strong>Facilities:</strong> 
-                    {{ college.facilities|join:", " }}
+                
+                <!-- Facilities (FIXED — MAIN BUG) -->
+                <p>
+                    <i class="fas fa-building"></i> 
+                    <strong>Facilities:</strong> 
+                    {{ college.get_facilities_list|join:", " }}
                 </p>
-                <p><i class="fas fa-chart-line"></i> <strong>Cutoff (General):</strong> 
+                
+                <!-- Cutoff -->
+                <p>
+                    <i class="fas fa-chart-line"></i> 
+                    <strong>Cutoff (General):</strong> 
                     {{ college.cutoff_general }}%
                 </p>
             </div>
             
+            <!-- Actions -->
             <div class="college-actions">
-                <a href="{% url 'college_detail' college.id %}" class="btn btn-view">
+                <a href="{% url 'college_detail' college.id %}" 
+                   class="btn btn-view">
                     <i class="fas fa-eye"></i> View Details
                 </a>
-                <button class="btn btn-compare" onclick="compareCollege('{{ college.id }}')">
+                <button class="btn btn-compare"
+                        onclick="compareCollege('{{ college.id }}')">
                     <i class="fas fa-balance-scale"></i> Compare
                 </button>
             </div>
         </div>
+
         {% empty %}
         <div class="no-results">
             <i class="fas fa-search fa-3x"></i>

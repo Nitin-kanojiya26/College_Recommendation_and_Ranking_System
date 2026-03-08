@@ -11,6 +11,7 @@ urlpatterns = [
     path('edit-profile/', views.edit_profile, name='edit_profile'),
     path('colleges/', views.college_list, name='college_list'),
     path('college/<int:college_id>/', views.college_detail, name='college_detail'),
+    path('college/<int:college_id>/rate/', views.rate_college, name='rate_college'),
     path('generate/', views.generate_recommendations, name='generate_recommendations'),
     path('save-college/', views.save_college, name='save_college'),
     path('save-dashboard-preferences/', views.save_dashboard_preferences, name='save_dashboard_preferences'),

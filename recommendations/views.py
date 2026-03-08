@@ -3,8 +3,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.db.models import Q
-from .models import Student, College, Ranking
+from django.db.models import Avg, Count, F, FloatField, Q
+from django.db.models.functions import Coalesce
+from django.utils.http import url_has_allowed_host_and_scheme
+from .models import Student, College, Ranking, CollegeRating
 
 def home(request):
     return render(request, 'recommendations/home.html')
@@ -126,16 +128,114 @@ def save_dashboard_preferences(request):
             student.min_rating = float(min_rating_val) if min_rating_val else 3.0
             
             student.save()
-            
-            messages.success(request, 'Preferences saved successfully!')
+
+            context = prepare_recommendation_context(
+                name=student.name or request.user.get_full_name() or request.user.username,
+                email=student.email or request.user.email,
+                marks=student.marks or 0,
+                category=student.category or 'General',
+                preferred_courses=student.get_preferred_courses_list(),
+                preferred_location=student.preferred_location or '',
+                budget=student.budget or 0,
+                min_rating=student.min_rating or 0
+            )
+            messages.success(request, 'Preferences saved successfully! Showing your latest recommendations.')
+            return render(request, 'recommendations/results.html', context)
         except Exception as e:
             messages.error(request, f'Error saving preferences: {str(e)}')
         
         return redirect('dashboard')
+
+    return redirect('dashboard')
+
+def get_colleges_with_rating_data():
+    return College.objects.annotate(
+        rating_count=Count('ratings', distinct=True),
+        display_rating=Coalesce(
+            Avg('ratings__rating'),
+            F('review_score'),
+            output_field=FloatField()
+        )
+    )
+
+def prepare_recommendation_context(
+    name,
+    email,
+    marks,
+    category,
+    preferred_courses,
+    preferred_location,
+    budget,
+    min_rating
+):
+    normalized_courses = []
+    for course in preferred_courses or []:
+        course_name = str(course).strip()
+        if course_name and course_name not in normalized_courses:
+            normalized_courses.append(course_name)
+
+    all_colleges = get_colleges_with_rating_data()
+    filtered_colleges = []
+
+    for college in all_colleges:
+        include = True
+
+        if preferred_location and preferred_location.lower() not in college.location.lower():
+            include = False
+
+        if normalized_courses:
+            college_courses = college.get_courses_list()
+            if not any(course in college_courses for course in normalized_courses):
+                include = False
+
+        if budget > 0 and college.annual_fees > budget:
+            include = False
+
+        if min_rating > 0 and college.display_rating < min_rating:
+            include = False
+
+        if include:
+            filtered_colleges.append(college)
+
+    recommendations = []
+    for college in filtered_colleges:
+        score = calculate_match_score(
+            marks=marks,
+            category=category,
+            preferred_courses=normalized_courses,
+            preferred_location=preferred_location,
+            budget=budget,
+            college=college
+        )
+        if score > 0:
+            recommendations.append({
+                'college': college,
+                'score': round(score, 1),
+                'stars': round(score / 2, 1)
+            })
+
+    recommendations.sort(key=lambda x: x['score'], reverse=True)
+    recommendations = recommendations[:10]
+
+    student_data = {
+        'name': name,
+        'email': email,
+        'marks': marks,
+        'category': category,
+        'preferred_course': ', '.join(normalized_courses) if normalized_courses else 'Any',
+        'preferred_location': preferred_location or 'Any',
+        'budget': budget,
+        'min_rating': min_rating
+    }
+
+    return {
+        'student': student_data,
+        'recommendations': recommendations
+    }
     
 # @login_required
 def college_list(request):
-    colleges = College.objects.all()
+    colleges = get_colleges_with_rating_data()
 
     # Get distinct locations
     locations = College.objects.values_list('location', flat=True).distinct().order_by('location')
@@ -173,21 +273,34 @@ def college_list(request):
 
         if fees:
             try:
-                min_fees, max_fees = fees.split('-')
-                if not (float(min_fees) <= college.annual_fees <= float(max_fees)):
-                    include = False
+                if fees.endswith('+'):
+                    min_fees = float(fees[:-1])
+                    if college.annual_fees < min_fees:
+                        include = False
+                else:
+                    min_fees, max_fees = fees.split('-')
+                    if not (float(min_fees) <= college.annual_fees <= float(max_fees)):
+                        include = False
             except:
                 pass
 
         if min_rating:
-            if college.review_score < float(min_rating):
+            if college.display_rating < float(min_rating):
                 include = False
 
         if include:
             filtered_colleges.append(college)
 
-    # ✅ SORT AFTER LOOP (inside function)
-    filtered_colleges.sort(key=lambda x: x.review_score, reverse=True)
+    filtered_colleges.sort(key=lambda x: x.display_rating, reverse=True)
+
+    if request.user.is_authenticated and filtered_colleges:
+        user_ratings = CollegeRating.objects.filter(
+            user=request.user,
+            college_id__in=[college.id for college in filtered_colleges]
+        ).values_list('college_id', 'rating')
+        user_rating_map = dict(user_ratings)
+        for college in filtered_colleges:
+            college.user_rating = user_rating_map.get(college.id)
 
     context = {
         'colleges': filtered_colleges,
@@ -279,55 +392,17 @@ def generate_recommendations(request):
             'min_rating': min_rating
         }
         request.session['student_data'] = student_data
-        
-        # Get all colleges
-        all_colleges = College.objects.all()
-        
-        # Filter colleges
-        filtered_colleges = []
-        for college in all_colleges:
-            include = True
-            
-            # Location filter
-            if preferred_location and preferred_location.lower() not in college.location.lower():
-                include = False
-            
-            # Course filter
-            if preferred_course:
-                courses = college.get_courses_list()
-                if preferred_course not in courses:
-                    include = False
-            
-            # Budget filter
-            if budget > 0 and college.annual_fees > budget:
-                include = False
-            
-            # Rating filter
-            if min_rating > 0 and college.review_score < min_rating:
-                include = False
-            
-            if include:
-                filtered_colleges.append(college)
-        
-        # Calculate scores for each college
-        recommendations = []
-        for college in filtered_colleges:
-            score = calculate_match_score(marks, category, preferred_course, preferred_location, budget, college)
-            if score > 0:
-                recommendations.append({
-                    'college': college,
-                    'score': round(score, 1),
-                    'stars': round(score / 2, 1)
-                })
-        
-        # Sort by score
-        recommendations.sort(key=lambda x: x['score'], reverse=True)
-        recommendations = recommendations[:10]
-        
-        context = {
-            'student': student_data,
-            'recommendations': recommendations
-        }
+
+        context = prepare_recommendation_context(
+            name=name,
+            email=email,
+            marks=marks,
+            category=category,
+            preferred_courses=[preferred_course] if preferred_course else [],
+            preferred_location=preferred_location,
+            budget=budget,
+            min_rating=min_rating
+        )
         return render(request, 'recommendations/results.html', context)
     
     # GET request - show the form
@@ -349,7 +424,7 @@ def generate_recommendations(request):
     }
     return render(request, 'recommendations/generate_recommendations.html', context)
 
-def calculate_match_score(marks, category, preferred_course, preferred_location, budget, college):
+def calculate_match_score(marks, category, preferred_courses, preferred_location, budget, college):
     """Calculate match score between student and college (0-10 scale)."""
     score = 0
     weights = {
@@ -369,11 +444,15 @@ def calculate_match_score(marks, category, preferred_course, preferred_location,
         else:
             score += weights['cutoff'] * 10 * (marks / cutoff)
     
+    if isinstance(preferred_courses, str):
+        preferred_courses = [preferred_courses] if preferred_courses else []
+
     # 2. Course match (20%)
-    if preferred_course:
+    if preferred_courses:
         courses = college.get_courses_list()
-        if preferred_course in courses:
-            score += weights['course'] * 10
+        matched_count = len([course for course in preferred_courses if course in courses])
+        if matched_count > 0:
+            score += weights['course'] * 10 * (matched_count / len(preferred_courses))
     
     # 3. Location match (15%)
     if preferred_location and college.location:
@@ -395,8 +474,9 @@ def calculate_match_score(marks, category, preferred_course, preferred_location,
         score += weights['placement'] * 10 * (college.placement_rate / 100)
     
     # 6. Review score (10%)
-    if college.review_score > 0:
-        score += weights['review'] * 10 * (college.review_score / 5)
+    rating_value = getattr(college, 'display_rating', college.review_score)
+    if rating_value > 0:
+        score += weights['review'] * 10 * (rating_value / 5)
     
     return score
 
@@ -409,9 +489,52 @@ def save_college(request):
     return redirect('college_list')
 
 @login_required
-def college_detail(request, college_id):
+def rate_college(request, college_id):
+    if request.method != 'POST':
+        return redirect('college_detail', college_id=college_id)
+
     college = get_object_or_404(College, id=college_id)
+    rating_raw = request.POST.get('rating', '').strip()
+
+    try:
+        rating_value = int(rating_raw)
+    except (TypeError, ValueError):
+        messages.error(request, 'Please select a valid rating from 1 to 5.')
+        return redirect('college_detail', college_id=college_id)
+
+    if rating_value < 1 or rating_value > 5:
+        messages.error(request, 'Please select a rating between 1 and 5.')
+        return redirect('college_detail', college_id=college_id)
+
+    CollegeRating.objects.update_or_create(
+        college=college,
+        user=request.user,
+        defaults={'rating': rating_value}
+    )
+    messages.success(request, 'Your rating has been saved.')
+
+    next_url = request.POST.get('next_url', '').strip()
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(next_url)
+
+    return redirect('college_detail', college_id=college_id)
+
+@login_required
+def college_detail(request, college_id):
+    college = get_object_or_404(get_colleges_with_rating_data(), id=college_id)
+    user_rating = None
+    if request.user.is_authenticated:
+        user_rating = CollegeRating.objects.filter(
+            college=college,
+            user=request.user
+        ).values_list('rating', flat=True).first()
+
     context = {
-        'college': college
+        'college': college,
+        'user_rating': user_rating
     }
     return render(request, 'recommendations/college_detail.html', context)

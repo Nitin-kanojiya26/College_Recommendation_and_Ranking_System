@@ -1,240 +1,381 @@
 {% extends 'recommendations/base.html' %}
 
-{% block content %}
-<div class="dashboard-container">
-    <h1 class="page-title"><i class="fas fa-user-graduate"></i> Student Dashboard</h1>
-    
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
-    <div class="dashboard-grid">
-        <!-- Profile Section -->
-        <div class="dashboard-card profile-card">
-            <h2><i class="fas fa-id-card"></i> Your Profile</h2>
-            <div class="profile-info">
-                <div class="info-item">
-                    <span class="label">Name:</span>
-                    <span class="value">{{ user.get_full_name|default:user.username }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Marks:</span>
-                    <span class="value">{{ student.marks|default:"0" }}%</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Category:</span>
-                    <span class="value">{{ student.category|default:"General" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Budget:</span>
-                    <span class="value">₹{{ student.budget|default:"0"|floatformat:0 }}</span>
-                </div>
-                <a href="{% url 'edit_profile' %}" class="btn btn-edit">
-                    <i class="fas fa-edit"></i> Edit Profile
-                </a>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="dashboard-card actions-card">
-            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-            <div class="actions-grid">
-                <a href="{% url 'generate_recommendations' %}" class="action-btn">
-                    <i class="fas fa-star"></i>
-                    <span>Get Recommendations</span>
-                </a>
-                <a href="{% url 'college_list' %}" class="action-btn">
-                    <i class="fas fa-search"></i>
-                    <span>Browse Colleges</span>
-                </a>
-                <a href="{% url 'edit_profile' %}" class="action-btn">
-                    <i class="fas fa-user-edit"></i>
-                    <span>Edit Profile</span>
-                </a>
-<div id="preference-container" style="width: 300px; text-align: center; margin: 20px auto;">
-    <!-- Initial Button -->
-    <button id="preference-btn" type="button" class="action-btn" 
-            style="padding: 12px 24px; font-size: 1.1em;" 
-            onclick="showMessage()">
-        <i class="fas fa-save"></i>
-        <span>Preferences by Profile</span>
-    </button>
-
-    <!-- Message Box (hidden initially) -->
-    <div id="message-box" style="display: none; 
-                                margin-top: 20px; 
-                                padding: 20px; 
-                                border: 1px solid #ccc; 
-                                border-radius: 8px; 
-                                background-color: #f9f9f9; 
-                                color: #333; 
-                                font-size: 1em;">
-        Your preferences have been saved! <br>
-        If You want to see preference Click on recommendations.
-    </div>
-</div>
-
-<script>
-function showMessage() {
-    // Hide the button
-    document.getElementById('preference-btn').style.display = 'none';
-    // Show the message box
-    document.getElementById('message-box').style.display = 'block';
-    
-    // Wait 2 seconds, then submit the form
-    setTimeout(function() {
-        document.getElementById('preferencesForm').submit();
-    }, 5000); // 5000ms = 5 seconds
-}
-</script>
-            </div>
-        </div>
-
-        <!-- Recent Recommendations -->
-        <div class="dashboard-card recommendations-card">
-            <h2><i class="fas fa-trophy"></i> Quick Tips</h2>
-            <div class="recommendations-list">
-                <div class="tip-item">
-                    <i class="fas fa-lightbulb"></i>
-                    <p>Complete your profile to get better recommendations</p>
-                </div>
-                <div class="tip-item">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <p>Set your preferred location to filter colleges</p>
-                </div>
-                <div class="tip-item">
-                    <i class="fas fa-rupee-sign"></i>
-                    <p>Update your budget to find affordable colleges</p>
-                </div>
-            </div>
-            <div class="card-footer">
-                <a href="{% url 'generate_recommendations' %}" class="btn btn-view-all">
-                    <i class="fas fa-arrow-right"></i> Get Recommendations Now
-                </a>
-            </div>
-        </div>
-
-        <!-- Preferences Form -->
-        <div class="dashboard-card form-card">
-            <h2><i class="fas fa-sliders-h"></i> Set Your Preferences</h2>
-            <form id="preferencesForm" method="POST" action="{% url 'save_dashboard_preferences' %}">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label><i class="fas fa-book"></i> Preferred Courses</label>
-                    {% if course in student.get_preferred_courses_list %}checked{% endif %}
-                    <div class="checkbox-group">
-                        {% for course in all_courses %}
-                        <label>
-                            <input type="checkbox" name="courses" value="{{ course }}" 
-                                {% if course in student.get_preferred_courses_list %}checked{% endif %}>
-                            {{ course }}
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt"></i> Preferred Location</label>
-                    <select name="location" class="form-select">
-                        <option value="">Any Location</option>
-                        {% for location in locations %}
-                        <option value="{{ location }}" {% if student.preferred_location == location %}selected{% endif %}>
-                            {{ location }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-rupee-sign"></i> Maximum Budget (₹)</label>
-                    <input type="range" name="budget" id="budgetSlider" min="0" max="500000" step="10000" 
-                           value="{{ student.budget|default:'200000' }}">
-                    <div class="slider-value">
-                        <span id="budgetValue">₹{{ student.budget|default:'200000'|floatformat:0 }}</span> per year
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-star"></i> Minimum Star Rating</label>
-                    <div class="star-rating" id="starRating">
-                        {% for i in "12345"|make_list %}
-                        <span class="star {% if forloop.counter <= student.min_rating|default:3 %}active{% endif %}" 
-                              data-value="{{ forloop.counter }}">★</span>
-                        {% endfor %}
-                    </div>
-                    <input type="hidden" name="min_rating" id="minRating" value="{{ student.min_rating|default:'3' }}">
-                </div>
-
-                <button type="submit" class="btn btn-save">
-                    <i class="fas fa-check"></i> Save
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <style>
-.checkbox-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
+.dash-shell {
+    max-width: 1220px;
 }
 
-.checkbox-group label {
+.dash-hero {
+    background: linear-gradient(130deg, #13365a, #2f5d8a);
+    color: #fff;
+    border-radius: 18px;
+    padding: 1.35rem;
+    box-shadow: 0 16px 34px rgba(19, 54, 90, 0.28);
+}
+
+.dash-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(17, 52, 86, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 26px rgba(15, 34, 52, 0.12);
+}
+
+.dash-card .card-title {
+    color: #1b3f64;
+    font-weight: 700;
+}
+
+.profile-avatar {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    background: linear-gradient(135deg, #e9f2ff, #dbe9fb);
+    color: #214c77;
+    margin: 0 auto;
+    font-size: 2rem;
+}
+
+.profile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #edf1f6;
+    padding: 0.48rem 0;
+}
+
+.profile-row:last-child {
+    border-bottom: none;
+}
+
+.profile-label {
+    color: #66758a;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.profile-value {
+    color: #1b334e;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.62rem;
+}
+
+.action-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f4f8fd;
+    border: 1px solid #dfe8f4;
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    text-decoration: none;
+    color: #1f456e;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.action-link:hover {
+    background: #e9f2ff;
+    border-color: #c9dcf5;
+    color: #173c62;
+    transform: translateY(-1px);
+}
+
+.form-label-strong {
+    color: #24486f;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.55rem;
+}
+
+.checkbox-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid #dce6f2;
+    border-radius: 10px;
+    padding: 0.45rem 0.58rem;
+    background: #f9fbff;
+    font-size: 0.85rem;
+}
+
+.checkbox-chip input {
+    accent-color: #2f5d8a;
+}
+
+.form-select,
+.form-control,
+.form-range {
+    border-radius: 10px;
+}
+
+.budget-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #edf4ff;
+    color: #20486f;
+    border-radius: 999px;
+    padding: 0.34rem 0.7rem;
+    font-size: 0.84rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+}
+
+.min-stars {
+    display: inline-flex;
+    gap: 0.2rem;
+}
+
+.min-star {
+    border: none;
+    background: transparent;
+    color: #c7d1de;
+    font-size: 1.38rem;
+    line-height: 1;
     cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.min-star:hover {
+    color: #f0b429;
+    transform: scale(1.06);
+}
+
+.min-star.active {
+    color: #f4b400;
+}
+
+.tip-list {
+    display: grid;
+    gap: 0.56rem;
 }
 
 .tip-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
-    border-bottom: 1px solid #eee;
+    gap: 0.6rem;
+    padding: 0.62rem 0.68rem;
+    border: 1px solid #e2eaf4;
+    border-radius: 10px;
+    background: #f9fbfe;
+    color: #2c3f56;
+    font-size: 0.9rem;
 }
 
 .tip-item i {
-    color: #4CAF50;
-    font-size: 1.2rem;
+    color: #2f5d8a;
 }
 
-.tip-item p {
-    margin: 0;
-    font-size: 0.9rem;
-}
-.star-rating {
-    display: flex;
-    gap: 5px;
-    font-size: 28px;
-    cursor: pointer;
+.dash-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: all 0.5s ease;
 }
 
-.star {
-    color: #ccc;
-    transition: color 0.2s;
+.dash-reveal.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.star.active {
-    color: gold;
+@media (max-width: 991px) {
+    .dash-sticky {
+        position: static !important;
+    }
 }
 </style>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
+{% endblock %}
 
-    const stars = document.querySelectorAll('#starRating .star');
+{% block content %}
+<div class="container dash-shell py-4">
+    <div class="dash-hero mb-4 dash-reveal">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+                <h1 class="h3 mb-1"><i class="fas fa-user-graduate me-2"></i>Student Dashboard</h1>
+                <p class="mb-0 text-white-50">Manage your profile preferences and discover best-fit colleges.</p>
+            </div>
+            <a href="{% url 'generate_recommendations' %}" class="btn btn-light">
+                <i class="fas fa-star me-1"></i> Get Recommendations
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3 dash-reveal">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="dash-sticky" style="position: sticky; top: 90px; display: grid; gap: 1rem;">
+                <div class="dash-card card dash-reveal">
+                    <div class="card-body p-4">
+                        <div class="profile-avatar mb-3">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h2 class="h5 text-center card-title mb-3">Your Profile</h2>
+                        <div class="profile-row">
+                            <span class="profile-label">Name</span>
+                            <span class="profile-value">{{ user.get_full_name|default:user.username }}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Marks</span>
+                            <span class="profile-value">{% if student %}{{ student.marks|floatformat:1 }}{% else %}0.0{% endif %}%</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Category</span>
+                            <span class="profile-value">{% if student %}{{ student.category|default:"General" }}{% else %}General{% endif %}</span>
+                        </div>
+                        <div class="profile-row">
+                            <span class="profile-label">Budget</span>
+                            <span class="profile-value">&#8377;{% if student %}{{ student.budget|default:"0"|floatformat:0 }}{% else %}0{% endif %}</span>
+                        </div>
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary w-100 mt-3">
+                            <i class="fas fa-edit me-1"></i> Edit Profile
+                        </a>
+                    </div>
+                </div>
+
+                <div class="dash-card card dash-reveal">
+                    <div class="card-body p-4">
+                        <h2 class="h5 card-title mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h2>
+                        <div class="action-grid">
+                            <a href="{% url 'generate_recommendations' %}" class="action-link">
+                                <i class="fas fa-star"></i> Get Recommendations
+                            </a>
+                            <a href="{% url 'college_list' %}" class="action-link">
+                                <i class="fas fa-search"></i> Browse Colleges
+                            </a>
+                            <a href="{% url 'edit_profile' %}" class="action-link">
+                                <i class="fas fa-user-edit"></i> Edit Profile
+                            </a>
+                            <button type="button" id="quickSavePrefs" class="action-link text-start">
+                                <i class="fas fa-save"></i> Save Current Preferences
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-card card dash-reveal">
+                    <div class="card-body p-4">
+                        <h2 class="h5 card-title mb-3"><i class="fas fa-lightbulb me-2"></i>Quick Tips</h2>
+                        <div class="tip-list">
+                            <div class="tip-item"><i class="fas fa-id-card"></i> Complete profile for better matches</div>
+                            <div class="tip-item"><i class="fas fa-map-marker-alt"></i> Use preferred location filters</div>
+                            <div class="tip-item"><i class="fas fa-rupee-sign"></i> Keep budget realistic for better options</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="dash-card card dash-reveal">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="h4 card-title mb-4"><i class="fas fa-sliders-h me-2"></i>Set Your Preferences</h2>
+                    <form id="preferencesForm" method="POST" action="{% url 'save_dashboard_preferences' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-strong"><i class="fas fa-book me-1"></i> Preferred Courses</label>
+                            <div class="checkbox-grid mt-2">
+                                {% for course in all_courses %}
+                                <label class="checkbox-chip">
+                                    <input type="checkbox" name="courses" value="{{ course }}" {% if student and course in student.get_preferred_courses_list %}checked{% endif %}>
+                                    <span>{{ course }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label form-label-strong"><i class="fas fa-map-marker-alt me-1"></i> Preferred Location</label>
+                                <select name="location" class="form-select">
+                                    <option value="">Any Location</option>
+                                    {% for location in locations %}
+                                    <option value="{{ location }}" {% if student and student.preferred_location == location %}selected{% endif %}>{{ location }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label form-label-strong"><i class="fas fa-star me-1"></i> Minimum Star Rating</label>
+                                <div class="min-stars mt-1" id="starRating">
+                                    {% for i in "12345"|make_list %}
+                                    <button type="button" class="min-star {% if student and forloop.counter <= student.min_rating|default:3 %}active{% elif not student and forloop.counter <= 3 %}active{% endif %}" data-value="{{ forloop.counter }}">&#9733;</button>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="min_rating" id="minRating" value="{% if student %}{{ student.min_rating|default:'3' }}{% else %}3{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-strong"><i class="fas fa-rupee-sign me-1"></i> Maximum Budget</label>
+                            <input type="range" class="form-range" name="budget" id="budgetSlider" min="0" max="500000" step="10000" value="{% if student %}{{ student.budget|default:'200000' }}{% else %}200000{% endif %}">
+                            <div class="budget-pill"><i class="fas fa-wallet"></i> <span id="budgetValue">&#8377;{% if student %}{{ student.budget|default:'200000'|floatformat:0 }}{% else %}200000{% endif %}</span> per year</div>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-1"></i> Get Preferences
+                            </button>
+                            <a href="{% url 'generate_recommendations' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-magic me-1"></i> Generate Recommendations
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const budgetSlider = document.getElementById('budgetSlider');
+    const budgetValue = document.getElementById('budgetValue');
     const minRating = document.getElementById('minRating');
+    const stars = document.querySelectorAll('#starRating .min-star');
+    const preferencesForm = document.getElementById('preferencesForm');
+    const quickSaveBtn = document.getElementById('quickSavePrefs');
+
+    function formatINR(value) {
+        return Number(value).toLocaleString('en-IN');
+    }
+
+    if (budgetSlider && budgetValue) {
+        budgetValue.textContent = String.fromCharCode(8377) + formatINR(budgetSlider.value);
+        budgetSlider.addEventListener('input', function () {
+            budgetValue.textContent = String.fromCharCode(8377) + formatINR(this.value);
+        });
+    }
 
     function setRating(rating) {
-        stars.forEach((star, index) => {
-            if (index < rating) {
+        stars.forEach(function (star) {
+            const val = parseInt(star.dataset.value, 10);
+            if (val <= rating) {
                 star.classList.add('active');
             } else {
                 star.classList.remove('active');
@@ -242,73 +383,37 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Initialize from hidden input
-    setRating(parseInt(minRating.value));
+    if (stars.length && minRating) {
+        setRating(parseInt(minRating.value || '3', 10));
 
-    stars.forEach((star, index) => {
+        stars.forEach(function (star) {
+            star.addEventListener('click', function () {
+                const value = parseInt(this.dataset.value, 10);
+                minRating.value = value;
+                setRating(value);
+            });
 
-        // Click = permanently set rating
-        star.addEventListener('click', function () {
-            const rating = index + 1;
-            minRating.value = rating;
-            setRating(rating);
+            star.addEventListener('mouseenter', function () {
+                setRating(parseInt(this.dataset.value, 10));
+            });
+
+            star.addEventListener('mouseleave', function () {
+                setRating(parseInt(minRating.value || '3', 10));
+            });
         });
-
-        // Hover effect
-        star.addEventListener('mouseover', function () {
-            setRating(index + 1);
-        });
-
-        // When leaving the star area, restore selected rating
-        star.addEventListener('mouseout', function () {
-            setRating(parseInt(minRating.value));
-        });
-
-    });
-
-});
-</script>
-{% endblock %}
-{% block extra_js %}
-<script>
-// Make the "Get Recommendations" button use profile data
-document.querySelector('a[href="{% url 'generate_recommendations' %}"]').addEventListener('click', function(e) {
-    e.preventDefault();
-    
-    // Create a form with profile data
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{% url 'generate_recommendations' %}';
-    
-    // Add CSRF token
-    const csrf = document.createElement('input');
-    csrf.type = 'hidden';
-    csrf.name = 'csrfmiddlewaretoken';
-    csrf.value = '{{ csrf_token }}';
-    form.appendChild(csrf);
-    
-    // Add profile data as hidden fields
-    const fields = {
-        'studentName': '{{ user.get_full_name|default:user.username }}',
-        'studentEmail': '{{ user.email }}',
-        'marks': '{{ student.marks|default:"85" }}',
-        'category': '{{ student.category|default:"General" }}',
-        'preferred_course': '',  // You can set a default or leave empty
-        'preferred_location': '{{ student.preferred_location|default:"" }}',
-        'budget': '{{ student.budget|default:"200000" }}',
-        'min_rating': '{{ student.min_rating|default:"3" }}'
-    };
-    
-    for (let key in fields) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = fields[key];
-        form.appendChild(input);
     }
-    
-    document.body.appendChild(form);
-    form.submit();
+
+    if (quickSaveBtn && preferencesForm) {
+        quickSaveBtn.addEventListener('click', function () {
+            preferencesForm.requestSubmit();
+        });
+    }
+
+    document.querySelectorAll('.dash-reveal').forEach(function (el, index) {
+        setTimeout(function () {
+            el.classList.add('show');
+        }, 65 * index);
+    });
 });
 </script>
 {% endblock %}

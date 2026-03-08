@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import Student, College, Ranking
+from .models import Student, College, Ranking, CollegeRating
 
 class CollegeAdminForm(forms.ModelForm):
     class Meta:
@@ -77,3 +77,9 @@ class RankingAdmin(admin.ModelAdmin):
     list_display = ['student', 'college', 'total_score', 'star_rating', 'created_at']
     list_filter = ['created_at', 'star_rating']
     search_fields = ['student__name', 'college__name']
+
+@admin.register(CollegeRating)
+class CollegeRatingAdmin(admin.ModelAdmin):
+    list_display = ['college', 'user', 'rating', 'updated_at']
+    list_filter = ['rating', 'updated_at']
+    search_fields = ['college__name', 'user__username', 'user__email']
