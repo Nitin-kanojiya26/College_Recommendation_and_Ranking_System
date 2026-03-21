@@ -3,132 +3,68 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <style>
-.home-shell { max-width: 1180px; }
+.auth-shell {
+    max-width: 1080px;
+}
 
-.home-hero {
-    background: linear-gradient(130deg, #123a5d, #2f5d8a);
-    border-radius: 22px;
-    padding: 2.4rem;
+.auth-hero {
+    background: linear-gradient(130deg, #14395b, #2f5d8a);
     color: #fff;
-    box-shadow: 0 20px 42px rgba(16, 51, 84, 0.28);
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 16px 34px rgba(20, 57, 91, 0.28);
 }
 
-.home-hero h1 {
-    font-size: clamp(1.8rem, 3vw, 2.7rem);
-    font-weight: 800;
-    letter-spacing: -0.3px;
-}
-
-.home-hero p {
-    color: rgba(255, 255, 255, 0.84);
-    max-width: 720px;
-}
-
-.home-hero-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 0.75rem;
-    margin-top: 1.15rem;
-}
-
-.home-stat {
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 0.75rem;
-}
-
-.home-stat i {
-    color: #b7d7f7;
-}
-
-.home-stat h6 {
-    margin: 0.28rem 0 0.1rem;
-    font-weight: 700;
-}
-
-.home-stat p {
-    margin: 0;
-    font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.home-section-card {
+.auth-panel {
     background: rgba(255, 255, 255, 0.97);
-    border: 1px solid rgba(17, 51, 84, 0.1);
+    border: 1px solid rgba(18, 54, 90, 0.12);
     border-radius: 16px;
-    box-shadow: 0 10px 28px rgba(16, 34, 52, 0.1);
+    box-shadow: 0 12px 28px rgba(15, 35, 53, 0.12);
 }
 
-.flow-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.8rem;
+.auth-label {
+    font-weight: 700;
+    color: #274a72;
+    font-size: 0.88rem;
 }
 
-.flow-item {
-    border: 1px solid #dbe6f4;
-    border-radius: 12px;
-    background: #f8fbff;
-    padding: 0.9rem;
-}
-
-.flow-icon {
-    width: 40px;
-    height: 40px;
+.form-control {
     border-radius: 10px;
-    background: #e8f2ff;
+    border-color: #d5e1ef;
+}
+
+.form-control:focus {
+    border-color: #6d95bd;
+    box-shadow: 0 0 0 0.2rem rgba(47, 93, 138, 0.15);
+}
+
+.auth-hint {
+    font-size: 0.78rem;
+    color: #607287;
+}
+
+.auth-link {
     color: #2f5d8a;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.flow-item h6 {
-    margin: 0.55rem 0 0.3rem;
-    color: #1f4368;
     font-weight: 700;
-}
-
-.flow-item p {
-    margin: 0;
-    color: #5f7287;
-    font-size: 0.87rem;
-}
-
-.quick-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.8rem;
-}
-
-.quick-link {
-    border: 1px solid #d8e6f7;
-    border-radius: 12px;
-    background: #f5f9ff;
-    padding: 0.8rem;
     text-decoration: none;
-    color: #22486f;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
 }
 
-.quick-link:hover {
-    background: #eaf3ff;
-    color: #173f67;
-    transform: translateY(-1px);
+.auth-link:hover {
+    color: #204a74;
+    text-decoration: underline;
 }
 
-.home-reveal {
+.pwd-toggle {
+    border-radius: 0 10px 10px 0;
+}
+
+.auth-reveal {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(16px);
     transition: all 0.5s ease;
 }
 
-.home-reveal.show {
+.auth-reveal.show {
     opacity: 1;
     transform: translateY(0);
 }
@@ -136,77 +72,63 @@
 {% endblock %}
 
 {% block content %}
-<div class="container home-shell py-4">
-    <div class="home-hero mb-4 home-reveal">
-        <h1 class="mb-2">Find Your Perfect College Match</h1>
-        <p class="mb-3">Personalized recommendations based on your marks, preferences, budget, and career goals.</p>
-
-        <div class="d-flex flex-wrap gap-2 mb-2">
-            {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}" class="btn btn-light"><i class="fas fa-play-circle me-1"></i> Get Started</a>
-            {% else %}
-            <a href="{% url 'login' %}" class="btn btn-light"><i class="fas fa-play-circle me-1"></i> Get Started</a>
-            {% endif %}
-            <a href="{% url 'college_list' %}" class="btn btn-outline-light"><i class="fas fa-search me-1"></i> Browse Colleges</a>
-            <a href="{% url 'generate_recommendations' %}" class="btn btn-outline-light"><i class="fas fa-magic me-1"></i> Generate Recommendations</a>
-        </div>
-
-        <div class="home-hero-stats">
-            <div class="home-stat">
-                <i class="fas fa-university"></i>
-                <h6>500+ Colleges</h6>
-                <p>Across India</p>
+<div class="container auth-shell py-4">
+    <div class="auth-hero mb-4 auth-reveal">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h1 class="h3 mb-1"><i class="fas fa-sign-in-alt me-2"></i>Welcome Back</h1>
+                <p class="mb-0 text-white-50">Login to continue your college recommendation journey.</p>
             </div>
-            <div class="home-stat">
-                <i class="fas fa-user-graduate"></i>
-                <h6>10,000+ Students</h6>
-                <p>Guided by recommendations</p>
-            </div>
-            <div class="home-stat">
-                <i class="fas fa-star"></i>
-                <h6>4.8/5 Rating</h6>
-                <p>User satisfaction score</p>
-            </div>
+            <a href="{% url 'register' %}" class="btn btn-light"><i class="fas fa-user-plus me-1"></i> Create Account</a>
         </div>
     </div>
 
-    <div class="home-section-card p-4 mb-4 home-reveal">
-        <h2 class="h4 mb-3" style="color:#1f4368;"><i class="fas fa-route me-2"></i>How It Works</h2>
-        <div class="flow-grid">
-            <div class="flow-item">
-                <span class="flow-icon"><i class="fas fa-user-check"></i></span>
-                <h6>Create Profile</h6>
-                <p>Add marks, category, and background details.</p>
-            </div>
-            <div class="flow-item">
-                <span class="flow-icon"><i class="fas fa-sliders-h"></i></span>
-                <h6>Set Preferences</h6>
-                <p>Choose location, budget, and preferred course.</p>
-            </div>
-            <div class="flow-item">
-                <span class="flow-icon"><i class="fas fa-chart-line"></i></span>
-                <h6>Get Match Scores</h6>
-                <p>System computes fit using weighted criteria.</p>
-            </div>
-            <div class="flow-item">
-                <span class="flow-icon"><i class="fas fa-trophy"></i></span>
-                <h6>View Top Colleges</h6>
-                <p>Review rankings and explore best options.</p>
-            </div>
-        </div>
+    {% if messages %}
+    <div class="mb-3 auth-reveal">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-2">{{ message }}</div>
+        {% endfor %}
     </div>
+    {% endif %}
 
-    <div class="home-section-card p-4 home-reveal">
-        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
-            <h2 class="h4 mb-0" style="color:#1f4368;"><i class="fas fa-compass me-2"></i>Quick Navigation</h2>
-            <a href="{% url 'generate_recommendations' %}" class="btn btn-primary"><i class="fas fa-magic me-1"></i> Start Now</a>
-        </div>
-        <div class="quick-grid">
-            <a class="quick-link" href="{% url 'dashboard' %}"><i class="fas fa-user-graduate"></i> Student Dashboard</a>
-            <a class="quick-link" href="{% url 'college_list' %}"><i class="fas fa-university"></i> College Directory</a>
-            <a class="quick-link" href="{% url 'generate_recommendations' %}"><i class="fas fa-star"></i> Recommendation Engine</a>
-            <a class="quick-link" href="{% url 'profile' %}"><i class="fas fa-id-card"></i> Profile & Preferences</a>
-        </div>
+    {% if error %}
+    <div class="alert alert-danger auth-reveal">
+        <i class="fas fa-exclamation-circle me-1"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="auth-panel p-4 p-md-5 auth-reveal">
+        <h2 class="h4 mb-4" style="color:#1f4368;"><i class="fas fa-user-lock me-2"></i>Login to Your Account</h2>
+
+        <form method="POST" action="{% url 'login' %}" class="row g-3">
+            {% csrf_token %}
+
+            <div class="col-12">
+                <label class="form-label auth-label"><i class="fas fa-user me-1"></i> Username or Email</label>
+                <input type="text" class="form-control" name="username" placeholder="Enter username or email" required>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label auth-label"><i class="fas fa-lock me-1"></i> Password</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="loginPassword" name="password" placeholder="Enter password" required>
+                    <button class="btn btn-outline-secondary pwd-toggle" type="button" id="toggleLoginPwd">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="auth-hint mt-1">Use your registered username/email and password.</div>
+            </div>
+
+            <div class="col-12 d-flex gap-2 flex-wrap mt-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt me-1"></i> Login
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">Back to Home</a>
+            </div>
+        </form>
+
+        <hr class="my-4">
+        <p class="mb-0 text-muted">Don't have an account? <a href="{% url 'register' %}" class="auth-link">Register here</a></p>
     </div>
 </div>
 {% endblock %}
@@ -215,7 +137,18 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.home-reveal').forEach(function (el, index) {
+    const toggleBtn = document.getElementById('toggleLoginPwd');
+    const pwdInput = document.getElementById('loginPassword');
+
+    if (toggleBtn && pwdInput) {
+        toggleBtn.addEventListener('click', function () {
+            const isPwd = pwdInput.type === 'password';
+            pwdInput.type = isPwd ? 'text' : 'password';
+            this.innerHTML = isPwd ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        });
+    }
+
+    document.querySelectorAll('.auth-reveal').forEach(function (el, index) {
         setTimeout(function () {
             el.classList.add('show');
         }, 70 * index);
