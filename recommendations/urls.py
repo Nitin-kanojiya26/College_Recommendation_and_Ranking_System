@@ -14,5 +14,8 @@ urlpatterns = [
     path('college/<int:college_id>/rate/', views.rate_college, name='rate_college'),
     path('generate/', views.generate_recommendations, name='generate_recommendations'),
     path('save-college/', views.save_college, name='save_college'),
+    path('saved-colleges/', views.saved_colleges, name='saved_colleges'),
+    path('saved-colleges/remove/<int:college_id>/', views.remove_saved_college, name='remove_saved_college'),
     path('save-dashboard-preferences/', views.save_dashboard_preferences, name='save_dashboard_preferences'),
+    path('compare/', views.compare_colleges, name='compare_colleges'),
 ]

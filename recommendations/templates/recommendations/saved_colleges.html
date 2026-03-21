@@ -1,0 +1,182 @@
+{% extends 'recommendations/base.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<style>
+.saved-shell { max-width: 1180px; }
+
+.saved-hero {
+    background: linear-gradient(130deg, #14395b, #2f5d8a);
+    color: #fff;
+    border-radius: 18px;
+    padding: 1.3rem;
+    box-shadow: 0 16px 34px rgba(20, 57, 91, 0.28);
+}
+
+.saved-card {
+    background: #fff;
+    border: 1px solid #dce7f3;
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 10px 22px rgba(15, 35, 53, 0.1);
+}
+
+.saved-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 1rem;
+}
+
+.rank-chip {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eaf2fc;
+    color: #2f5d8a;
+    font-weight: 800;
+    font-size: 0.82rem;
+}
+
+.score-chip {
+    border-radius: 10px;
+    background: linear-gradient(130deg, #2f5d8a, #4d7bab);
+    color: #fff;
+    padding: 0.45rem 0.66rem;
+    text-align: center;
+    min-width: 68px;
+}
+
+.score-chip .num {
+    display: block;
+    font-weight: 800;
+    line-height: 1;
+    font-size: 1.16rem;
+}
+
+.saved-location {
+    color: #526479;
+    font-size: 0.84rem;
+}
+
+.saved-location-link,
+.saved-location-link:visited,
+.saved-location-link:active {
+    color: #526479;
+    text-decoration: none;
+}
+
+.saved-location-link:hover {
+    color: #2f5d8a;
+    text-decoration: none;
+}
+
+.saved-meta {
+    display: grid;
+    gap: 0.34rem;
+    margin: 0.75rem 0;
+    color: #33475e;
+    font-size: 0.86rem;
+}
+
+.empty-box {
+    background: #fff;
+    border: 1px dashed #cfddee;
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    color: #566579;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container saved-shell py-4">
+    <div class="saved-hero mb-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+            <div>
+                <h1 class="h3 mb-1"><i class="fas fa-bookmark me-2"></i>Saved Colleges</h1>
+                <p class="mb-0 text-white-50">All your saved colleges, ordered by ranking score.</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'college_list' %}" class="btn btn-light"><i class="fas fa-university me-1"></i> Browse Colleges</a>
+                <a href="{% url 'generate_recommendations' %}" class="btn btn-outline-light"><i class="fas fa-magic me-1"></i> Recommendations</a>
+            </div>
+        </div>
+    </div>
+
+    {% if saved_items %}
+    <div class="saved-grid">
+        {% for item in saved_items %}
+        <div class="saved-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="rank-chip">#{{ forloop.counter }}</span>
+                        <h3 class="h6 mb-0">{{ item.college.name }}</h3>
+                    </div>
+                    {% if item.college.location %}
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ item.college.name|add:', '|add:item.college.location|urlencode }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="saved-location saved-location-link"
+                       title="Open {{ item.college.location }} in Google Maps">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ item.college.location }}
+                    </a>
+                    {% else %}
+                    <div class="saved-location">Location not available</div>
+                    {% endif %}
+                </div>
+                <div class="score-chip">
+                    <span class="num">{{ item.ranking.total_score|floatformat:1 }}</span>
+                    <small>/10</small>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                {% widthratio item.college.display_rating 5 100 as rating_percent %}
+                <div style="position:relative; display:inline-block; line-height:1; letter-spacing:1px; font-size:1.05rem;" aria-label="Rating {{ item.college.display_rating|floatformat:1 }} out of 5">
+                    <span style="display:block; color:#d5d7df;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                    <span style="display:block; position:absolute; left:0; top:0; width: {{ rating_percent }}%; max-width:100%; overflow:hidden; white-space:nowrap; color:#ffd700;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                </div>
+                <span class="ms-1 small text-muted">{{ item.college.display_rating|floatformat:1 }}/5</span>
+            </div>
+
+            <div class="saved-meta">
+                <div><i class="fas fa-rupee-sign me-1"></i><strong>Fees:</strong> &#8377;{{ item.college.annual_fees|floatformat:0 }}/year</div>
+                <div><i class="fas fa-briefcase me-1"></i><strong>Placement:</strong> {{ item.college.placement_rate }}%</div>
+                <div><i class="fas fa-check-circle me-1"></i><strong>Saved:</strong> {{ item.ranking.created_at|date:"M d, Y" }}</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="{% url 'college_detail' item.college.id %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                    <i class="fas fa-info-circle me-1"></i> Details
+                </a>
+                <form method="POST" action="{% url 'remove_saved_college' item.college.id %}" class="flex-grow-1">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100" onclick="return confirm('Remove this college from saved list?');">
+                        <i class="fas fa-trash-alt me-1"></i> Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-box">
+        <i class="fas fa-bookmark fa-3x mb-3"></i>
+        <h3 class="h5">No saved colleges yet</h3>
+        <p>Save colleges from your recommendations to see them here.</p>
+        <a href="{% url 'generate_recommendations' %}" class="btn btn-primary">
+            <i class="fas fa-magic me-1"></i> Generate Recommendations
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

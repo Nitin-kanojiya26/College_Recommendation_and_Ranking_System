@@ -484,9 +484,101 @@ def calculate_match_score(marks, category, preferred_courses, preferred_location
 def save_college(request):
     if request.method == 'POST':
         college_id = request.POST.get('college_id')
+        college = get_object_or_404(College, id=college_id)
+        student = Student.objects.filter(user=request.user).first()
+        if not student:
+            student = Student.objects.create(
+                user=request.user,
+                name=request.user.get_full_name().strip(),
+                email=request.user.email
+            )
+
+        score_raw = request.POST.get('score', '').strip()
+        score = None
+        if score_raw:
+            try:
+                score = float(score_raw)
+            except (TypeError, ValueError):
+                score = None
+
+        if score is None:
+            score = calculate_match_score(
+                marks=student.marks or 0,
+                category=student.category or 'General',
+                preferred_courses=student.get_preferred_courses_list(),
+                preferred_location=student.preferred_location or '',
+                budget=student.budget or 0,
+                college=college
+            )
+
+        score = round(score, 1)
+        star_rating = round(score / 2, 1)
+
+        Ranking.objects.update_or_create(
+            student=student,
+            college=college,
+            defaults={
+                'total_score': score,
+                'star_rating': star_rating
+            }
+        )
+
         messages.success(request, 'College saved successfully!')
         return redirect('college_list')
     return redirect('college_list')
+
+@login_required
+def saved_colleges(request):
+    student = Student.objects.filter(user=request.user).first()
+    saved_items = []
+
+    if student:
+        saved_rankings = Ranking.objects.filter(student=student).select_related('college').order_by(
+            '-total_score',
+            '-created_at'
+        )
+        college_ids = [ranking.college_id for ranking in saved_rankings]
+        if college_ids:
+            college_map = {
+                college.id: college
+                for college in get_colleges_with_rating_data().filter(id__in=college_ids)
+            }
+        else:
+            college_map = {}
+
+        for ranking in saved_rankings:
+            college = college_map.get(ranking.college_id, ranking.college)
+            saved_items.append({
+                'ranking': ranking,
+                'college': college
+            })
+
+    context = {
+        'saved_items': saved_items
+    }
+    return render(request, 'recommendations/saved_colleges.html', context)
+
+@login_required
+def remove_saved_college(request, college_id):
+    if request.method != 'POST':
+        return redirect('saved_colleges')
+
+    student = Student.objects.filter(user=request.user).first()
+    if not student:
+        messages.error(request, 'Student profile not found.')
+        return redirect('saved_colleges')
+
+    deleted_count, _ = Ranking.objects.filter(
+        student=student,
+        college_id=college_id
+    ).delete()
+
+    if deleted_count:
+        messages.success(request, 'College removed from saved list.')
+    else:
+        messages.info(request, 'College was not in your saved list.')
+
+    return redirect('saved_colleges')
 
 @login_required
 def rate_college(request, college_id):
@@ -538,3 +630,26 @@ def college_detail(request, college_id):
         'user_rating': user_rating
     }
     return render(request, 'recommendations/college_detail.html', context)
+
+def compare_colleges(request):
+    colleges = get_colleges_with_rating_data().order_by('name')
+    left_id = request.GET.get('left', '').strip()
+    right_id = request.GET.get('right', '').strip()
+
+    left_college = None
+    right_college = None
+
+    if left_id:
+        left_college = colleges.filter(id=left_id).first()
+
+    if right_id:
+        right_college = colleges.filter(id=right_id).first()
+
+    context = {
+        'colleges': colleges,
+        'left_id': left_id,
+        'right_id': right_id,
+        'left_college': left_college,
+        'right_college': right_college
+    }
+    return render(request, 'recommendations/compare_colleges.html', context)
