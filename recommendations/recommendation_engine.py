@@ -1,3 +1,4 @@
+#expample of how RecommendationEngine Work.this code is in views.py.recommendation_engine.py is only example,this file not effect the System.
 class RecommendationEngine:
     
     @staticmethod
